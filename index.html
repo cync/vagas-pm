@@ -3,230 +3,615 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Vagas PM Internacional · @cync</title>
+<title>PM Jobs · Felipe Saraiva</title>
 <style>
-  :root {
-    --navy:  #1a2e4a;
-    --blue:  #2563eb;
-    --lblue: #eff6ff;
-    --green: #16a34a;
-    --lgreen:#dcfce7;
-    --gray:  #64748b;
-    --lgray: #f1f5f9;
-    --border:#e2e8f0;
-    --white: #ffffff;
-    --text:  #1e293b;
-    --badge: #f59e0b;
-    --lbadge:#fef3c7;
-  }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--lgray); color: var(--text); }
-  
-  header { background: var(--navy); color: white; padding: 20px 32px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
-  header h1 { font-size: 1.3rem; font-weight: 700; letter-spacing: -0.3px; }
-  header h1 span { color: #60a5fa; }
-  .stats { display: flex; gap: 24px; }
-  .stat { text-align: center; }
-  .stat-num { font-size: 1.5rem; font-weight: 800; color: #60a5fa; }
-  .stat-lbl { font-size: 0.7rem; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; }
+/* ── Mastercard Design System ── */
+:root {
+  --cream:   #FDF8F0;
+  --cream2:  #F5EDD8;
+  --red:     #EB001B;
+  --orange:  #F79E1B;
+  --amber:   #FF5F00;
+  --dark:    #1A1108;
+  --navy:    #01386A;
+  --gray:    #6B5E4E;
+  --lgray:   #EDE8DF;
+  --border:  #DDD5C4;
+  --white:   #FFFFFF;
+  --pill:    999px;
+  --r-card:  20px;
+  --r-btn:   999px;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: var(--cream);
+  color: var(--dark);
+  min-height: 100vh;
+}
 
-  .controls { background: white; border-bottom: 1px solid var(--border); padding: 12px 32px; display: flex; gap: 12px; flex-wrap: wrap; align-items: center; position: sticky; top: 0; z-index: 100; box-shadow: 0 1px 4px rgba(0,0,0,.06); }
-  .controls input { flex: 1; min-width: 180px; padding: 7px 12px; border: 1px solid var(--border); border-radius: 6px; font-size: 0.875rem; }
-  .controls select { padding: 7px 12px; border: 1px solid var(--border); border-radius: 6px; font-size: 0.875rem; background: white; cursor: pointer; }
-  .controls label { font-size: 0.8rem; color: var(--gray); display: flex; align-items: center; gap: 6px; cursor: pointer; }
-  .count-badge { background: var(--lblue); color: var(--blue); font-size: 0.75rem; font-weight: 600; padding: 2px 8px; border-radius: 999px; }
+/* ── Header ── */
+header {
+  background: var(--dark);
+  padding: 0 32px;
+  display: flex;
+  align-items: stretch;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.header-brand {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 20px 0;
+}
+.mc-logo {
+  position: relative;
+  width: 48px;
+  height: 30px;
+  flex-shrink: 0;
+}
+.mc-logo .c1 {
+  position: absolute; left: 0; top: 0;
+  width: 22px; height: 22px; border-radius: 50%;
+  background: var(--red); opacity: 0.95;
+  top: 4px;
+}
+.mc-logo .c2 {
+  position: absolute; left: 14px; top: 4px;
+  width: 22px; height: 22px; border-radius: 50%;
+  background: var(--orange); opacity: 0.95;
+  mix-blend-mode: normal;
+}
+.mc-logo .c-overlap {
+  position: absolute; left: 14px; top: 4px;
+  width: 8px; height: 22px;
+  background: var(--amber); opacity: 0.85;
+  clip-path: ellipse(8px 11px at 0% 50%);
+}
+.brand-text h1 { font-size: 1.1rem; font-weight: 800; color: #fff; letter-spacing: -0.3px; }
+.brand-text p  { font-size: 0.75rem; color: #a89880; margin-top: 1px; }
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  padding: 20px 0;
+}
+.stat-pill {
+  background: rgba(255,255,255,0.07);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: var(--pill);
+  padding: 6px 16px;
+  text-align: center;
+}
+.stat-pill .num { font-size: 1.2rem; font-weight: 800; color: var(--orange); line-height: 1; }
+.stat-pill .lbl { font-size: 0.65rem; color: #a89880; text-transform: uppercase; letter-spacing: 0.5px; }
+.personal-link {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+  background: rgba(247,158,27,0.15);
+  border: 1px solid rgba(247,158,27,0.35);
+  border-radius: var(--pill);
+  padding: 8px 18px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--orange);
+  transition: background 0.2s;
+}
+.personal-link:hover { background: rgba(247,158,27,0.25); }
 
-  main { max-width: 960px; margin: 0 auto; padding: 24px 16px; }
+/* ── Controls bar ── */
+.controls {
+  background: var(--white);
+  border-bottom: 1px solid var(--border);
+  padding: 12px 32px;
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 2px 12px rgba(26,17,8,0.06);
+}
+.search-wrap {
+  flex: 1;
+  min-width: 180px;
+  position: relative;
+}
+.search-wrap input {
+  width: 100%;
+  padding: 9px 16px 9px 36px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--pill);
+  font-size: 0.875rem;
+  background: var(--cream);
+  color: var(--dark);
+  outline: none;
+  transition: border-color .2s;
+}
+.search-wrap input:focus { border-color: var(--orange); }
+.search-wrap::before {
+  content: '🔍';
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 0.8rem;
+  pointer-events: none;
+}
+.ctl-select {
+  padding: 9px 14px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--pill);
+  font-size: 0.8rem;
+  background: var(--cream);
+  color: var(--dark);
+  cursor: pointer;
+  outline: none;
+}
+.ctl-select:focus { border-color: var(--orange); }
+.toggle-new {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.8rem;
+  color: var(--gray);
+  cursor: pointer;
+  padding: 8px 14px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--pill);
+  background: var(--cream);
+  user-select: none;
+  transition: border-color .2s, background .2s;
+}
+.toggle-new.active {
+  background: #FEF3C7;
+  border-color: var(--orange);
+  color: #92400e;
+  font-weight: 600;
+}
+.toggle-new input { display: none; }
+.count-pill {
+  background: var(--cream2);
+  border: 1px solid var(--border);
+  border-radius: var(--pill);
+  padding: 6px 14px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--amber);
+  white-space: nowrap;
+}
 
-  .year-block { margin-bottom: 32px; }
-  .year-label { font-size: 1.1rem; font-weight: 800; color: var(--navy); padding: 6px 0; border-bottom: 2px solid var(--blue); margin-bottom: 16px; }
+/* ── Main ── */
+main { max-width: 1000px; margin: 0 auto; padding: 28px 16px; }
 
-  .month-block { margin-bottom: 20px; }
-  .month-label { font-size: 0.8rem; font-weight: 700; color: var(--blue); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 10px; padding-left: 4px; }
+/* Week pills navigation */
+.week-nav {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+}
+.week-pill {
+  padding: 8px 20px;
+  border-radius: var(--pill);
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: all .2s;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.week-pill.tw  { background: var(--amber); color: #fff; }
+.week-pill.lw  { background: var(--dark); color: var(--orange); }
+.week-pill.old { background: var(--cream2); color: var(--gray); border-color: var(--border); }
+.week-pill:hover { opacity: 0.85; transform: translateY(-1px); }
 
-  .run-card { background: white; border: 1px solid var(--border); border-radius: 10px; margin-bottom: 12px; overflow: hidden; }
-  .run-header { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; cursor: pointer; gap: 8px; }
-  .run-header:hover { background: var(--lgray); }
-  .run-date { font-weight: 700; font-size: 0.925rem; color: var(--navy); }
-  .run-meta { font-size: 0.8rem; color: var(--gray); }
-  .run-badges { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
-  .badge { font-size: 0.72rem; font-weight: 600; padding: 2px 8px; border-radius: 999px; white-space: nowrap; }
-  .badge-new  { background: var(--lbadge); color: #92400e; border: 1px solid #fcd34d; }
-  .badge-count{ background: var(--lgreen); color: var(--green); }
-  .chevron { font-size: 0.75rem; color: var(--gray); transition: transform .2s; }
-  .run-card.open .chevron { transform: rotate(180deg); }
+/* Timeline sections */
+.section-label {
+  font-size: 0.68rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--gray);
+  margin-bottom: 12px;
+  padding-left: 2px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.section-label::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
 
-  .jobs-table { display: none; border-top: 1px solid var(--border); }
-  .run-card.open .jobs-table { display: block; }
-  
-  .jobs-table table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
-  .jobs-table th { background: var(--lgray); text-align: left; padding: 8px 12px; font-size: 0.72rem; color: var(--gray); text-transform: uppercase; letter-spacing: 0.4px; font-weight: 600; }
-  .jobs-table td { padding: 8px 12px; border-top: 1px solid var(--border); vertical-align: top; }
-  .jobs-table tr:hover td { background: #f8fafc; }
-  .company { font-weight: 600; color: var(--navy); }
-  .role    { color: var(--text); }
-  .ats-tag { display: inline-block; font-size: 0.68rem; padding: 1px 6px; border-radius: 4px; background: var(--lblue); color: var(--blue); font-weight: 500; white-space: nowrap; }
-  a.apply  { display: inline-block; font-size: 0.75rem; font-weight: 600; color: var(--blue); text-decoration: none; border: 1px solid var(--blue); border-radius: 5px; padding: 2px 10px; white-space: nowrap; }
-  a.apply:hover { background: var(--blue); color: white; }
+.week-section { margin-bottom: 32px; }
+.week-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+.week-title {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--dark);
+}
+.week-sub {
+  font-size: 0.78rem;
+  color: var(--gray);
+}
+.month-group { margin-bottom: 12px; }
+.month-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--amber);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 8px;
+  padding-left: 2px;
+}
 
-  .no-results { text-align: center; padding: 48px 16px; color: var(--gray); }
+/* Run cards */
+.run-card {
+  background: var(--white);
+  border: 1.5px solid var(--border);
+  border-radius: var(--r-card);
+  margin-bottom: 10px;
+  overflow: hidden;
+  transition: box-shadow .2s, transform .2s;
+}
+.run-card:hover { box-shadow: 0 4px 20px rgba(26,17,8,0.08); transform: translateY(-1px); }
+.run-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 20px;
+  cursor: pointer;
+  gap: 8px;
+}
+.run-header:hover { background: var(--cream); }
+.run-date { font-weight: 700; font-size: 0.9rem; color: var(--dark); }
+.run-exec { font-size: 0.75rem; color: var(--gray); margin-left: 4px; }
+.run-badges { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.badge {
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: var(--pill);
+  white-space: nowrap;
+}
+.badge-latest  { background: linear-gradient(135deg, var(--red), var(--orange)); color: #fff; }
+.badge-count   { background: var(--cream2); color: var(--amber); border: 1px solid var(--border); }
+.chevron { font-size: 0.7rem; color: var(--gray); transition: transform .2s; margin-left: 4px; }
+.run-card.open .chevron { transform: rotate(180deg); }
 
-  footer { text-align: center; padding: 24px; font-size: 0.75rem; color: var(--gray); }
+/* Jobs table */
+.jobs-panel { display: none; border-top: 1.5px solid var(--border); }
+.run-card.open .jobs-panel { display: block; }
+.jobs-panel table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+.jobs-panel th {
+  background: var(--cream);
+  text-align: left;
+  padding: 9px 16px;
+  font-size: 0.68rem;
+  color: var(--gray);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 700;
+}
+.jobs-panel td { padding: 9px 16px; border-top: 1px solid var(--border); vertical-align: middle; }
+.jobs-panel tr:hover td { background: #FDFAF5; }
+.co { font-weight: 700; color: var(--navy); }
+.role-text { color: var(--dark); }
+.ats-tag {
+  display: inline-block;
+  font-size: 0.68rem;
+  padding: 2px 9px;
+  border-radius: var(--pill);
+  background: var(--cream2);
+  color: var(--amber);
+  font-weight: 600;
+  border: 1px solid var(--border);
+  white-space: nowrap;
+}
+a.apply-btn {
+  display: inline-block;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--amber);
+  text-decoration: none;
+  border: 1.5px solid var(--amber);
+  border-radius: var(--pill);
+  padding: 3px 12px;
+  white-space: nowrap;
+  transition: all .15s;
+}
+a.apply-btn:hover { background: var(--amber); color: #fff; }
+
+.empty { text-align: center; padding: 56px 16px; color: var(--gray); font-size: 0.9rem; }
+
+/* Footer */
+footer {
+  border-top: 1px solid var(--border);
+  padding: 24px 32px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  font-size: 0.75rem;
+  color: var(--gray);
+  background: var(--white);
+}
+footer a { color: var(--amber); text-decoration: none; font-weight: 600; }
+footer a:hover { text-decoration: underline; }
 </style>
 </head>
 <body>
 
 <header>
-  <h1>Vagas <span>PM Internacional</span></h1>
-  <div class="stats">
-    <div class="stat"><div class="stat-num" id="vis-count">142</div><div class="stat-lbl">vagas</div></div>
-    <div class="stat"><div class="stat-num">15</div><div class="stat-lbl">execuções</div></div>
-    <div class="stat"><div class="stat-num">0</div><div class="stat-lbl">última busca</div></div>
+  <div class="header-brand">
+    <div class="mc-logo">
+      <div class="c1"></div>
+      <div class="c2"></div>
+      <div class="c-overlap"></div>
+    </div>
+    <div class="brand-text">
+      <h1>PM Jobs Internacional</h1>
+      <p>curated by Felipe Saraiva · AI Product Builder</p>
+    </div>
+  </div>
+  <div class="header-right">
+    <div class="stat-pill"><div class="num" id="vis-count">142</div><div class="lbl">vagas</div></div>
+    <div class="stat-pill"><div class="num">15</div><div class="lbl">execuções</div></div>
+    <div class="stat-pill"><div class="num">0</div><div class="lbl">hoje</div></div>
+    <a class="personal-link" href="https://felipesaraiva.com" target="_blank" rel="noopener">
+      ↗ felipesaraiva.com
+    </a>
   </div>
 </header>
 
 <div class="controls">
-  <input type="text" id="search" placeholder="🔍  Buscar empresa, cargo…" oninput="filter()">
-  <select id="sel-year" onchange="filter()"><option value="">Todos os anos</option></select>
-  <select id="sel-ats"  onchange="filter()"><option value="">Todas as plataformas</option></select>
-  <label><input type="checkbox" id="only-new" onchange="filter()"> Só novas <span class="badge badge-new">✨ novo</span></label>
-  <span class="count-badge" id="count-lbl">142 vagas</span>
+  <div class="search-wrap">
+    <input type="text" id="search" placeholder="Buscar empresa, cargo…" oninput="applyFilter()">
+  </div>
+  <select class="ctl-select" id="sel-year"  onchange="applyFilter()"><option value="">Todos os anos</option></select>
+  <select class="ctl-select" id="sel-month" onchange="applyFilter()"><option value="">Todos os meses</option></select>
+  <select class="ctl-select" id="sel-ats"   onchange="applyFilter()"><option value="">Todas as plataformas</option></select>
+  <label class="toggle-new" id="toggle-new-label">
+    <input type="checkbox" id="only-new" onchange="this.closest('.toggle-new').classList.toggle('active',this.checked);applyFilter()">
+    ✨ Só novas
+  </label>
+  <span class="count-pill" id="count-lbl">142 vagas</span>
 </div>
 
-<main id="main-content"></main>
+<main>
+  <div class="week-nav" id="week-nav"></div>
+  <div id="content"></div>
+</main>
 
-<footer>Atualizado em 24/05/2026 19:29 · 142 vagas · 15 execuções</footer>
+<footer>
+  <span>Atualizado em 24 May 2026 · 19:42 · 142 vagas · 15 execuções</span>
+  <span>Criado por <a href="https://felipesaraiva.com" target="_blank">Felipe Saraiva</a> · <a href="https://github.com/cync/vagas-pm" target="_blank">GitHub</a></span>
+</footer>
 
 <script>
 const ALL_JOBS = [{"company": "doola", "role": "Product Manager (Remote – Latin America)", "url": "https://jobs.lever.co/doola/741920c3-0493-4226-b37a-799cff27765f", "ats": "Lever", "date": "2026-05-20", "exec": "1", "file": "vagas_pm_2026-05-20.md", "is_latest": false}, {"company": "Jobgether", "role": "Senior Product Manager (Remote) – AI Data Platform", "url": "https://jobs.lever.co/jobgether/64ebff5f-f034-497e-bced-bafc16f595f2", "ats": "Lever", "date": "2026-05-20", "exec": "1", "file": "vagas_pm_2026-05-20.md", "is_latest": false}, {"company": "Jobgether", "role": "Product Manager – REMOTE", "url": "https://jobs.lever.co/jobgether/3906d41a-3ac3-4951-bbde-22edea1db563", "ats": "Lever", "date": "2026-05-20", "exec": "1", "file": "vagas_pm_2026-05-20.md", "is_latest": false}, {"company": "3Pillar Global", "role": "Product Manager (LATAM / Global)", "url": "https://jobs.lever.co/3pillarglobal/be1d7f21-b011-448a-a157-7a1409c1e666", "ats": "Lever", "date": "2026-05-20", "exec": "1", "file": "vagas_pm_2026-05-20.md", "is_latest": false}, {"company": "CompassX Group", "role": "Product Manager (Contrato 6 meses – Remote)", "url": "https://jobs.lever.co/compassx/9085db0d-5e48-4dd0-ad04-e1e8852e72c2", "ats": "Lever", "date": "2026-05-20", "exec": "1", "file": "vagas_pm_2026-05-20.md", "is_latest": false}, {"company": "Owner.com", "role": "Senior PM, Guest Lifecycle & Loyalty", "url": "https://jobs.ashbyhq.com/owner/e20c78e7-296c-448b-8ccf-d0fcccd4ebb6", "ats": "Ashby HQ", "date": "2026-05-20", "exec": "1", "file": "vagas_pm_2026-05-20.md", "is_latest": false}, {"company": "Owner.com", "role": "Senior PM, Product-Led Growth", "url": "https://jobs.ashbyhq.com/owner/0d82c556-d107-4973-805b-d37614f56788", "ats": "Ashby HQ", "date": "2026-05-20", "exec": "1", "file": "vagas_pm_2026-05-20.md", "is_latest": false}, {"company": "RoomPriceGenie", "role": "Group Product Manager – Integrations (Remote)", "url": "https://jobs.ashbyhq.com/roompricegenie/ca402ea5-5717-46ba-af69-e23b934fd552", "ats": "Ashby HQ", "date": "2026-05-20", "exec": "1", "file": "vagas_pm_2026-05-20.md", "is_latest": false}, {"company": "The Global Talent Co.", "role": "Senior Product Marketing Manager (Remote Global)", "url": "https://jobs.ashbyhq.com/the-global-talent-co/2723faef-9dd2-4e70-8e25-bdaf6a462ac1", "ats": "Ashby HQ", "date": "2026-05-20", "exec": "1", "file": "vagas_pm_2026-05-20.md", "is_latest": false}, {"company": "Douro Labs", "role": "Product Manager", "url": "https://jobs.ashbyhq.com/dourolabs.xyz/7058c001-bff0-4dc3-8237-ee71ebcec314", "ats": "Ashby HQ", "date": "2026-05-20", "exec": "1", "file": "vagas_pm_2026-05-20.md", "is_latest": false}, {"company": "Tremendous", "role": "Senior Product Manager (Remote – Global)", "url": "https://jobs.ashbyhq.com/Tremendous/db48b621-647f-410e-8aa9-6af43cdd1797", "ats": "Ashby HQ", "date": "2026-05-20", "exec": "1", "file": "vagas_pm_2026-05-20.md", "is_latest": false}, {"company": "SimSpace Corporation", "role": "Senior Product Manager (Remote)", "url": "https://jobs.ashbyhq.com/simspace-corporation/d731f40e-62b3-41d0-9e65-a5000a3e2676", "ats": "Ashby HQ", "date": "2026-05-20", "exec": "1", "file": "vagas_pm_2026-05-20.md", "is_latest": false}, {"company": "LucidLink", "role": "Senior Product Manager (Remote)", "url": "https://jobs.ashbyhq.com/lucidlink/00c6af1a-b50b-4941-9652-d8fdd92f2e2e", "ats": "Ashby HQ", "date": "2026-05-20", "exec": "1", "file": "vagas_pm_2026-05-20.md", "is_latest": false}, {"company": "Airwallex", "role": "Staff PM, Embedded Finance", "url": "https://jobs.ashbyhq.com/airwallex/c4794257-0db9-464a-8940-bdaf25fc253d", "ats": "Ashby HQ", "date": "2026-05-20", "exec": "1", "file": "vagas_pm_2026-05-20.md", "is_latest": false}, {"company": "EverAI", "role": "Senior AI Product Manager (Remote – Europe)", "url": "https://jobs.ashbyhq.com/everai/694c19b7-d94f-4f66-97a7-5c881b0811bf", "ats": "Ashby HQ", "date": "2026-05-20", "exec": "1", "file": "vagas_pm_2026-05-20.md", "is_latest": false}, {"company": "RevenueCat", "role": "Senior PM, Paywalls (Remote)", "url": "https://jobs.ashbyhq.com/revenuecat/a3794ad6-375e-4b82-adfd-d773959c5706", "ats": "Ashby HQ", "date": "2026-05-20", "exec": "1", "file": "vagas_pm_2026-05-20.md", "is_latest": false}, {"company": "RevenueCat", "role": "Senior PM, Funnels/Workflow (Remote)", "url": "https://jobs.ashbyhq.com/revenuecat/d28235be-172c-40fe-91ae-8453f218f413", "ats": "Ashby HQ", "date": "2026-05-20", "exec": "1", "file": "vagas_pm_2026-05-20.md", "is_latest": false}, {"company": "Remote.com", "role": "Product Manager, Benefits (LATAM / EMEA prioritário)", "url": "https://job-boards.greenhouse.io/remotecom/jobs/7509257003", "ats": "Greenhouse", "date": "2026-05-20", "exec": "1", "file": "vagas_pm_2026-05-20.md", "is_latest": false}, {"company": "Remote.com", "role": "Product Manager, Payments (EMEA / APAC prioritário)", "url": "https://job-boards.greenhouse.io/remotecom/jobs/6627449003", "ats": "Greenhouse", "date": "2026-05-20", "exec": "1", "file": "vagas_pm_2026-05-20.md", "is_latest": false}, {"company": "Remote.com", "role": "Product Manager (Global)", "url": "https://job-boards.greenhouse.io/remotecom/jobs/6909477003", "ats": "Greenhouse", "date": "2026-05-20", "exec": "1", "file": "vagas_pm_2026-05-20.md", "is_latest": false}, {"company": "Gong.io", "role": "Senior PM, International & Enterprise", "url": "https://job-boards.greenhouse.io/gongio/jobs/4625963006", "ats": "Greenhouse", "date": "2026-05-20", "exec": "1", "file": "vagas_pm_2026-05-20.md", "is_latest": false}, {"company": "mpathic", "role": "Product Manager, AI Analytics & Workflows", "url": "https://weworkremotely.com/remote-jobs/mpathic-product-manager-ai-analytics-workflows", "ats": "We Work Remotely", "date": "2026-05-20", "exec": "1", "file": "vagas_pm_2026-05-20.md", "is_latest": false}, {"company": "Method Grid", "role": "Product Manager (Anywhere)", "url": "https://weworkremotely.com/remote-jobs/method-grid-product-manager", "ats": "We Work Remotely", "date": "2026-05-20", "exec": "1", "file": "vagas_pm_2026-05-20.md", "is_latest": false}, {"company": "Plaid", "role": "Product Manager – Payments", "url": "https://weworkremotely.com/remote-jobs/plaid-product-manager-payments", "ats": "We Work Remotely", "date": "2026-05-20", "exec": "1", "file": "vagas_pm_2026-05-20.md", "is_latest": false}, {"company": "Userwise Services", "role": "Product Manager (Anywhere)", "url": "https://weworkremotely.com/remote-jobs/userwise-services-product-manager-1", "ats": "We Work Remotely", "date": "2026-05-20", "exec": "1", "file": "vagas_pm_2026-05-20.md", "is_latest": false}, {"company": "Dotmatics", "role": "Product Manager, GraphPad Prism", "url": "https://weworkremotely.com/remote-jobs/dotmatics-product-manager-graphpad-prism", "ats": "We Work Remotely", "date": "2026-05-20", "exec": "1", "file": "vagas_pm_2026-05-20.md", "is_latest": false}, {"company": "Jump", "role": "Enterprise Product Manager (Remote)", "url": "https://weworkremotely.com/remote-jobs/jump-enterprise-product-manager", "ats": "We Work Remotely", "date": "2026-05-20", "exec": "1", "file": "vagas_pm_2026-05-20.md", "is_latest": false}, {"company": "Intellum", "role": "Senior Product Manager (Anywhere)", "url": "https://weworkremotely.com/remote-jobs/intellum-senior-product-manager", "ats": "We Work Remotely", "date": "2026-05-20", "exec": "1", "file": "vagas_pm_2026-05-20.md", "is_latest": false}, {"company": "Awesome Motive", "role": "Product Manager (Global – incl. Brasil)", "url": "https://weworkremotely.com/remote-jobs/awesome-motive-product-manager", "ats": "We Work Remotely", "date": "2026-05-20", "exec": "1", "file": "vagas_pm_2026-05-20.md", "is_latest": false}, {"company": "Cial Dun & Bradstreet", "role": "Growth Product Manager (Anywhere)", "url": "https://weworkremotely.com/remote-jobs/cial-dun-bradstreet-growth-product-manager", "ats": "We Work Remotely", "date": "2026-05-20", "exec": "1", "file": "vagas_pm_2026-05-20.md", "is_latest": false}, {"company": "thoughtbot", "role": "Product Manager – Remote (EMEA)", "url": "https://apply.workable.com/thoughtbot/j/2A18EE41C3/", "ats": "Workable", "date": "2026-05-20", "exec": "1", "file": "vagas_pm_2026-05-20.md", "is_latest": false}, {"company": "Passion.io", "role": "Senior Mobile Apps PM (Global Remote)", "url": "https://apply.workable.com/passionio/j/ECD81FB71F/", "ats": "Workable", "date": "2026-05-20", "exec": "1", "file": "vagas_pm_2026-05-20.md", "is_latest": false}, {"company": "Tomorrow University", "role": "Senior Product Manager (Remote)", "url": "https://tomorrowuniversity.recruitee.com/o/remote-senior-product-manager-mfd", "ats": "Recruitee / BambooHR", "date": "2026-05-20", "exec": "1", "file": "vagas_pm_2026-05-20.md", "is_latest": false}, {"company": "Proto", "role": "Product Manager (Remote – Anywhere)", "url": "https://protoglobal.bamboohr.com/jobs/view.php?id=95", "ats": "Recruitee / BambooHR", "date": "2026-05-20", "exec": "1", "file": "vagas_pm_2026-05-20.md", "is_latest": false}, {"company": "Afriex", "role": "Product Manager (Remote)", "url": "https://afriex.bamboohr.com/jobs/view.php?id=24", "ats": "Recruitee / BambooHR", "date": "2026-05-20", "exec": "1", "file": "vagas_pm_2026-05-20.md", "is_latest": false}, {"company": "Sphere Laboratories", "role": "Product Manager – Brazil (Remote)", "url": "https://jobs.lever.co/sphere-laboratories/bf7d2430-a2d8-435b-a0cb-264e44c8bb61", "ats": "Lever", "date": "2026-05-22", "exec": "1", "file": "vagas_pm_2026-05-22.md", "is_latest": false}, {"company": "dLocal", "role": "Senior Product Manager – Brazil (Remote)", "url": "https://jobs.lever.co/dlocal/a63b7691-0362-4049-9270-e43a7a18c1c6", "ats": "Lever", "date": "2026-05-22", "exec": "1", "file": "vagas_pm_2026-05-22.md", "is_latest": false}, {"company": "Jeeves", "role": "Product Manager – Accounting (LATAM)", "url": "https://jobs.lever.co/tryjeeves/83ca9734-ed23-47d0-8a79-2f3b9779a96c", "ats": "Lever", "date": "2026-05-22", "exec": "1", "file": "vagas_pm_2026-05-22.md", "is_latest": false}, {"company": "Binance", "role": "Senior Payment Product Manager – LATAM", "url": "https://jobs.lever.co/binance/149ebd74-43d0-4a8a-88a5-5a21c0ffea42", "ats": "Lever", "date": "2026-05-22", "exec": "1", "file": "vagas_pm_2026-05-22.md", "is_latest": false}, {"company": "CI&T", "role": "Product Manager (AI Driven) – Brazil", "url": "https://jobs.lever.co/ciandt/d5b56563-1059-43c8-879f-cdf3bffac7e2/apply", "ats": "Lever", "date": "2026-05-22", "exec": "1", "file": "vagas_pm_2026-05-22.md", "is_latest": false}, {"company": "Bluelight Consulting", "role": "Product Manager – Remote, Latin America", "url": "https://jobs.lever.co/bluelightconsulting/cae16fc8-5441-4999-a480-7e5fbb814edd", "ats": "Lever", "date": "2026-05-22", "exec": "1", "file": "vagas_pm_2026-05-22.md", "is_latest": false}, {"company": "Yuno", "role": "Senior Product Manager SDK (Americas / EMEA Remote)", "url": "https://jobs.lever.co/yuno/52be3369-2156-48c3-b498-4c37d23e33e2", "ats": "Lever", "date": "2026-05-22", "exec": "1", "file": "vagas_pm_2026-05-22.md", "is_latest": false}, {"company": "Canary Technologies", "role": "Senior Product Manager (EMEA – Remote)", "url": "https://jobs.lever.co/canarytechnologies/bddbef67-30e1-4222-8c1b-8d088bfa4ee3", "ats": "Lever", "date": "2026-05-22", "exec": "1", "file": "vagas_pm_2026-05-22.md", "is_latest": false}, {"company": "Insider", "role": "Product Manager – B2B SaaS Martech (Remote)", "url": "https://jobs.lever.co/useinsider/3dcbb21d-42a9-4c20-9304-73039d8dfe9c", "ats": "Lever", "date": "2026-05-22", "exec": "1", "file": "vagas_pm_2026-05-22.md", "is_latest": false}, {"company": "Jobgether", "role": "Senior Product Manager – API (Remote from Argentina)", "url": "https://jobs.lever.co/jobgether/6e05d353-a9ba-4527-aa1c-6e1cb9fe52d7", "ats": "Lever", "date": "2026-05-22", "exec": "1", "file": "vagas_pm_2026-05-22.md", "is_latest": false}, {"company": "Jobgether", "role": "Senior Product Manager (Remote)", "url": "https://jobs.lever.co/jobgether/a1f9da05-2439-44be-a571-2a3b4108ebbb", "ats": "Lever", "date": "2026-05-22", "exec": "1", "file": "vagas_pm_2026-05-22.md", "is_latest": false}, {"company": "Hopper", "role": "Senior Product Manager – Enterprise / Commerce (100% Remote)", "url": "https://jobs.ashbyhq.com/hopper/35a9bc6c-5426-4986-b5bc-66a29055f26d", "ats": "Ashby HQ", "date": "2026-05-22", "exec": "1", "file": "vagas_pm_2026-05-22.md", "is_latest": false}, {"company": "LemFi", "role": "Senior Product Manager (Remote – Global South)", "url": "https://jobs.ashbyhq.com/lemfi/cf46d44e-aced-4336-95a8-ba0815bba93c", "ats": "Ashby HQ", "date": "2026-05-22", "exec": "1", "file": "vagas_pm_2026-05-22.md", "is_latest": false}, {"company": "Moovx", "role": "Product Owner (Remote)", "url": "https://jobs.ashbyhq.com/moovx/ed0738a4-9bb1-49de-867b-b19061fa5066", "ats": "Ashby HQ", "date": "2026-05-22", "exec": "1", "file": "vagas_pm_2026-05-22.md", "is_latest": false}, {"company": "Quora", "role": "Senior Product Manager – Core Experience (Remote)", "url": "https://jobs.ashbyhq.com/quora/fb238ccb-dbc4-417c-8fd1-96573d7499b9", "ats": "Ashby HQ", "date": "2026-05-22", "exec": "1", "file": "vagas_pm_2026-05-22.md", "is_latest": false}, {"company": "Orca", "role": "Product Manager (Remote)", "url": "https://jobs.ashbyhq.com/orca/c1e2ed21-fe0c-46da-811f-9c2f776c5163", "ats": "Ashby HQ", "date": "2026-05-22", "exec": "1", "file": "vagas_pm_2026-05-22.md", "is_latest": false}, {"company": "Colonist", "role": "Product Manager – Platform (Remote – Anywhere)", "url": "https://jobs.ashbyhq.com/colonist/aa22a805-1cbd-4309-b207-feaef9c89809", "ats": "Ashby HQ", "date": "2026-05-22", "exec": "1", "file": "vagas_pm_2026-05-22.md", "is_latest": false}, {"company": "Colonist", "role": "Product Manager – Game (Remote – Anywhere)", "url": "https://jobs.ashbyhq.com/colonist/7a3936e8-dc97-4324-8570-6de716c7d453", "ats": "Ashby HQ", "date": "2026-05-22", "exec": "1", "file": "vagas_pm_2026-05-22.md", "is_latest": false}, {"company": "SimSpace Corporation", "role": "Principal Product Manager (Remote)", "url": "https://jobs.ashbyhq.com/simspace-corporation/353a22f8-76ac-47bb-90b3-7634e9bb4b3c", "ats": "Ashby HQ", "date": "2026-05-22", "exec": "1", "file": "vagas_pm_2026-05-22.md", "is_latest": false}, {"company": "LucidLink", "role": "Senior Product Manager – Platform (Remote)", "url": "https://jobs.ashbyhq.com/lucidlink/7ce76341-933d-4f4a-8799-0d93e8fc0330", "ats": "Ashby HQ", "date": "2026-05-22", "exec": "1", "file": "vagas_pm_2026-05-22.md", "is_latest": false}, {"company": "Coinbase", "role": "Product Manager II – LATAM (Remote, Brazil)", "url": "https://boards.greenhouse.io/coinbase/jobs/6648177", "ats": "Greenhouse", "date": "2026-05-22", "exec": "1", "file": "vagas_pm_2026-05-22.md", "is_latest": false}, {"company": "LumiMeds", "role": "Senior / Lead Technical Product Manager (Remote – LATAM incl. Brasil e México)", "url": "https://job-boards.greenhouse.io/lumimeds/jobs/4227386009", "ats": "Greenhouse", "date": "2026-05-22", "exec": "1", "file": "vagas_pm_2026-05-22.md", "is_latest": false}, {"company": "Remote.com", "role": "Product Manager – Billing (Global, priori. LATAM / EMEA)", "url": "https://boards.greenhouse.io/remotecom/jobs/6064626003", "ats": "Greenhouse", "date": "2026-05-22", "exec": "1", "file": "vagas_pm_2026-05-22.md", "is_latest": false}, {"company": "Remote.com", "role": "Product Manager – Web Experience (Global, priori. LATAM / EMEA)", "url": "https://boards.greenhouse.io/remotecom/jobs/5898957003", "ats": "Greenhouse", "date": "2026-05-22", "exec": "1", "file": "vagas_pm_2026-05-22.md", "is_latest": false}, {"company": "Remote.com", "role": "Product Manager – Payroll (Global)", "url": "https://boards.greenhouse.io/remotecom/jobs/5731298003", "ats": "Greenhouse", "date": "2026-05-22", "exec": "1", "file": "vagas_pm_2026-05-22.md", "is_latest": false}, {"company": "Cloudbeds", "role": "Product Manager – Integrations LATAM", "url": "https://job-boards.greenhouse.io/cloudbeds/jobs/4643862005", "ats": "Greenhouse", "date": "2026-05-22", "exec": "1", "file": "vagas_pm_2026-05-22.md", "is_latest": false}, {"company": "Gladly", "role": "Senior Product Manager – Consumer LATAM (Remote)", "url": "https://boards.greenhouse.io/embed/job_app?for=sagansystems&token=7232866", "ats": "Greenhouse", "date": "2026-05-22", "exec": "1", "file": "vagas_pm_2026-05-22.md", "is_latest": false}, {"company": "MagicSchool AI", "role": "Product Manager – Enterprise (Remote)", "url": "https://weworkremotely.com/remote-jobs/magicschool-ai-product-manager-enterprise-prise", "ats": "We Work Remotely", "date": "2026-05-22", "exec": "1", "file": "vagas_pm_2026-05-22.md", "is_latest": false}, {"company": "Workwize", "role": "Product Manager – B2B SaaS (Remote)", "url": "https://weworkremotely.com/remote-jobs/workwize-product-manager-b2b-saas", "ats": "We Work Remotely", "date": "2026-05-22", "exec": "1", "file": "vagas_pm_2026-05-22.md", "is_latest": false}, {"company": "eDesk", "role": "Product Manager (Remote)", "url": "https://weworkremotely.com/remote-jobs/edesk-product-manager", "ats": "We Work Remotely", "date": "2026-05-22", "exec": "1", "file": "vagas_pm_2026-05-22.md", "is_latest": false}, {"company": "Tenth Revolution Group", "role": "Product Manager – Fully Remote", "url": "https://weworkremotely.com/remote-jobs/tenth-revolution-group-product-manager-fully-remote", "ats": "We Work Remotely", "date": "2026-05-22", "exec": "1", "file": "vagas_pm_2026-05-22.md", "is_latest": false}, {"company": "Instacart", "role": "Senior Product Manager – Marketing Experiences & Growth (Remote)", "url": "https://weworkremotely.com/remote-jobs/instacart-senior-product-manager-marketing-experiences-growth", "ats": "We Work Remotely", "date": "2026-05-22", "exec": "1", "file": "vagas_pm_2026-05-22.md", "is_latest": false}, {"company": "Degreed", "role": "Senior Product Manager (Remote)", "url": "https://weworkremotely.com/remote-jobs/degreed-senior-product-manager", "ats": "We Work Remotely", "date": "2026-05-22", "exec": "1", "file": "vagas_pm_2026-05-22.md", "is_latest": false}, {"company": "Payra", "role": "Product Lead – Data Products (Remote)", "url": "https://weworkremotely.com/remote-jobs/payra-product-lead-data-products", "ats": "We Work Remotely", "date": "2026-05-22", "exec": "1", "file": "vagas_pm_2026-05-22.md", "is_latest": false}, {"company": "Remote Talent LATAM", "role": "Product Manager / Lead – LATAM Only (Remote)", "url": "https://apply.workable.com/remote-talent-latam/j/CD1095C4BE", "ats": "Workable", "date": "2026-05-22", "exec": "1", "file": "vagas_pm_2026-05-22.md", "is_latest": false}, {"company": "Jobgether", "role": "Product Manager – Supplements (Remote from Latin America)", "url": "https://apply.workable.com/jobgether/j/7E5BDB0246/", "ats": "Workable", "date": "2026-05-22", "exec": "1", "file": "vagas_pm_2026-05-22.md", "is_latest": false}, {"company": "CloudLinux", "role": "Technical Product Manager (Worldwide Remote – Anywhere)", "url": "https://apply.workable.com/cloudlinux-1/j/F0871C6D23", "ats": "Workable", "date": "2026-05-22", "exec": "1", "file": "vagas_pm_2026-05-22.md", "is_latest": false}, {"company": "Jobgether", "role": "Senior Product Manager (Remote – Anywhere)", "url": "https://apply.workable.com/jobgether/j/16CB0B4D28", "ats": "Workable", "date": "2026-05-22", "exec": "1", "file": "vagas_pm_2026-05-22.md", "is_latest": false}, {"company": "dLocal", "role": "Senior Product Manager – Finance LATAM (Remote)", "url": "https://jobs.lever.co/dlocal/e82fd6d9-3b8e-484d-b1f5-ee21d096b896", "ats": "Lever", "date": "2026-05-23", "exec": "1", "file": "vagas_pm_2026-05-23.md", "is_latest": false}, {"company": "Airtm", "role": "Product Manager (AI & Blockchain) – LATAM", "url": "https://jobs.lever.co/airtm/44ebf59f-6f7e-4ed1-92dd-d3679b99c98e", "ats": "Lever", "date": "2026-05-23", "exec": "1", "file": "vagas_pm_2026-05-23.md", "is_latest": false}, {"company": "3Pillar Global", "role": "Product Manager (Remote – LATAM delivery centers)", "url": "https://jobs.lever.co/3pillarglobal/be1d7f21-b011-448a-a157-7a1409c1e666", "ats": "Lever", "date": "2026-05-23", "exec": "1", "file": "vagas_pm_2026-05-23.md", "is_latest": false}, {"company": "Apply Digital", "role": "Senior Product Manager (Remote)", "url": "https://jobs.lever.co/applydigital/48b1d20b-ce9d-47b2-9d86-9e3fbffb10f5", "ats": "Lever", "date": "2026-05-23", "exec": "1", "file": "vagas_pm_2026-05-23.md", "is_latest": false}, {"company": "Hopper", "role": "Principal Product Manager – Distribution (100% Remote)", "url": "https://jobs.ashbyhq.com/hopper/b86991dd-71a4-4188-9c0d-08205367e312", "ats": "Ashby HQ", "date": "2026-05-23", "exec": "1", "file": "vagas_pm_2026-05-23.md", "is_latest": false}, {"company": "Quora", "role": "Principal Product Manager – Growth, Poe (Remote)", "url": "https://jobs.ashbyhq.com/quora/b55763b6-0a98-479c-8199-9972fce6486c", "ats": "Ashby HQ", "date": "2026-05-23", "exec": "1", "file": "vagas_pm_2026-05-23.md", "is_latest": false}, {"company": "Quora", "role": "Senior Product Manager – Ads (Remote)", "url": "https://jobs.ashbyhq.com/quora/d6f83da3-6de0-48d2-b655-09ff1e59e813", "ats": "Ashby HQ", "date": "2026-05-23", "exec": "1", "file": "vagas_pm_2026-05-23.md", "is_latest": false}, {"company": "SimSpace Corporation", "role": "Senior Product Manager (Remote)", "url": "https://jobs.ashbyhq.com/simspace-corporation/d731f40e-62b3-41d0-9e65-a5000a3e2676", "ats": "Ashby HQ", "date": "2026-05-23", "exec": "1", "file": "vagas_pm_2026-05-23.md", "is_latest": false}, {"company": "Deel", "role": "Senior Product Manager (Global Remote)", "url": "https://jobs.ashbyhq.com/Deel/3729df77-5669-49f9-9614-33be8abd7549", "ats": "Ashby HQ", "date": "2026-05-23", "exec": "1", "file": "vagas_pm_2026-05-23.md", "is_latest": false}, {"company": "Invert", "role": "Product Manager (Remote – AI & Biology)", "url": "https://jobs.ashbyhq.com/invert/4642a4d3-afec-4df7-a89f-d8ec05aa1e84", "ats": "Ashby HQ", "date": "2026-05-23", "exec": "1", "file": "vagas_pm_2026-05-23.md", "is_latest": false}, {"company": "Airwallex", "role": "Senior Product Manager – Corporate Site (Global)", "url": "https://jobs.ashbyhq.com/airwallex/5488d78e-72fb-4c26-b743-af0fca4069c0", "ats": "Ashby HQ", "date": "2026-05-23", "exec": "1", "file": "vagas_pm_2026-05-23.md", "is_latest": false}, {"company": "Airwallex", "role": "Staff Product Manager – Embedded Finance (Global)", "url": "https://jobs.ashbyhq.com/airwallex/c4794257-0db9-464a-8940-bdaf25fc253d", "ats": "Ashby HQ", "date": "2026-05-23", "exec": "1", "file": "vagas_pm_2026-05-23.md", "is_latest": false}, {"company": "Airwallex", "role": "Senior Product Manager – AI Developer Experience (Global)", "url": "https://jobs.ashbyhq.com/airwallex/23b569cd-d5b5-48fa-b205-f75334be57d7", "ats": "Ashby HQ", "date": "2026-05-23", "exec": "1", "file": "vagas_pm_2026-05-23.md", "is_latest": false}, {"company": "SplitMetrics", "role": "Senior Product Manager – Core (Remote)", "url": "https://jobs.ashbyhq.com/splitmetrics/9517133e-b4f5-4056-9c70-091ef9451226", "ats": "Ashby HQ", "date": "2026-05-23", "exec": "1", "file": "vagas_pm_2026-05-23.md", "is_latest": false}, {"company": "RevenueCat", "role": "Senior Product Manager – Paywalls (Remote)", "url": "https://jobs.ashbyhq.com/revenuecat/a3794ad6-375e-4b82-adfd-d773959c5706", "ats": "Ashby HQ", "date": "2026-05-23", "exec": "1", "file": "vagas_pm_2026-05-23.md", "is_latest": false}, {"company": "Remote.com", "role": "Product Manager – Benefits (Global, priori. EMEA / AMER)", "url": "https://job-boards.greenhouse.io/remotecom/jobs/7509257003", "ats": "Greenhouse", "date": "2026-05-23", "exec": "1", "file": "vagas_pm_2026-05-23.md", "is_latest": false}, {"company": "Remote.com", "role": "Product Manager – Payments (Global, priori. EMEA / APAC)", "url": "https://job-boards.greenhouse.io/remotecom/jobs/6627449003", "ats": "Greenhouse", "date": "2026-05-23", "exec": "1", "file": "vagas_pm_2026-05-23.md", "is_latest": false}, {"company": "Remote.com", "role": "Senior Product Manager – Growth (Global)", "url": "https://job-boards.greenhouse.io/remotecom/jobs/6567499003", "ats": "Greenhouse", "date": "2026-05-23", "exec": "1", "file": "vagas_pm_2026-05-23.md", "is_latest": false}, {"company": "Remote.com", "role": "Product-Led Growth Manager (Global)", "url": "https://job-boards.greenhouse.io/remotecom/jobs/7703886003", "ats": "Greenhouse", "date": "2026-05-23", "exec": "1", "file": "vagas_pm_2026-05-23.md", "is_latest": false}, {"company": "Remote.com", "role": "Product Manager – Benefits Integrations (Global, priori. LATAM / EMEA)", "url": "https://boards.greenhouse.io/remotecom/jobs/5943916003", "ats": "Greenhouse", "date": "2026-05-23", "exec": "1", "file": "vagas_pm_2026-05-23.md", "is_latest": false}, {"company": "Sporty Group", "role": "Product Manager – Brazil (Remote)", "url": "https://job-boards.greenhouse.io/sportygroup/jobs/4748134101", "ats": "Greenhouse", "date": "2026-05-23", "exec": "1", "file": "vagas_pm_2026-05-23.md", "is_latest": false}, {"company": "Degreed", "role": "Product Manager – EMEA Remote", "url": "https://boards.greenhouse.io/degreed/jobs/4144849004", "ats": "Greenhouse", "date": "2026-05-23", "exec": "1", "file": "vagas_pm_2026-05-23.md", "is_latest": false}, {"company": "Workleap", "role": "Senior Product Manager – ShareGate Platform (Remote)", "url": "https://weworkremotely.com/remote-jobs/workleap-senior-product-manager-sharegate-platform", "ats": "We Work Remotely", "date": "2026-05-23", "exec": "1", "file": "vagas_pm_2026-05-23.md", "is_latest": false}, {"company": "Global HR Solutions", "role": "Group Product Manager (Remote – Brazil elegível)", "url": "https://weworkremotely.com/remote-jobs/global-hr-solutions-employment-tools-for-distributed-teams-group-product-manager", "ats": "We Work Remotely", "date": "2026-05-23", "exec": "1", "file": "vagas_pm_2026-05-23.md", "is_latest": false}, {"company": "thoughtbot", "role": "Product Manager – Remote (EMEA)", "url": "https://apply.workable.com/thoughtbot/j/2A18EE41C3/", "ats": "Workable", "date": "2026-05-23", "exec": "1", "file": "vagas_pm_2026-05-23.md", "is_latest": false}, {"company": "Simprints", "role": "Lead Product Manager – Remote (Global)", "url": "https://apply.workable.com/simprints/j/85F40D61DF", "ats": "Workable", "date": "2026-05-23", "exec": "1", "file": "vagas_pm_2026-05-23.md", "is_latest": false}, {"company": "Canva", "role": "Senior Product Manager – LATAM", "url": "https://jobs.smartrecruiters.com/Canva/6000000000445554-senior-product-manager-latam", "ats": "SmartRecruiters", "date": "2026-05-23", "exec": "1", "file": "vagas_pm_2026-05-23.md", "is_latest": false}, {"company": "Shopify", "role": "Product Manager – Shop Minis – Remote (EMEA)", "url": "https://jobs.smartrecruiters.com/Shopify/743999809992524-product-manager-shop-minis-remote-emea-", "ats": "SmartRecruiters", "date": "2026-05-23", "exec": "1", "file": "vagas_pm_2026-05-23.md", "is_latest": false}, {"company": "Remote World", "role": "Product Manager (Remote – Anywhere)", "url": "https://remoteworld.teamtailor.com/jobs/7629867-product-manager", "ats": "TeamTailor", "date": "2026-05-23", "exec": "1", "file": "vagas_pm_2026-05-23.md", "is_latest": false}, {"company": "Sphere Laboratories", "role": "Product Manager – Brazil (Fintech/Stablecoins, Remote)", "url": "https://jobs.lever.co/sphere-laboratories/bf7d2430-a2d8-435b-a0cb-264e44c8bb61", "ats": "Lever", "date": "2026-05-24", "exec": "1", "file": "vagas_pm_2026-05-24.md", "is_latest": true}, {"company": "Bluelight Consulting", "role": "Product Manager – Remote, Latin America", "url": "https://jobs.lever.co/bluelightconsulting/cae16fc8-5441-4999-a480-7e5fbb814edd", "ats": "Lever", "date": "2026-05-24", "exec": "1", "file": "vagas_pm_2026-05-24.md", "is_latest": true}, {"company": "Binance", "role": "Senior Payment Product Manager – LATAM", "url": "https://jobs.lever.co/binance/149ebd74-43d0-4a8a-88a5-5a21c0ffea42", "ats": "Lever", "date": "2026-05-24", "exec": "1", "file": "vagas_pm_2026-05-24.md", "is_latest": true}, {"company": "dLocal", "role": "Senior Product Manager – Brazil (Remote)", "url": "https://jobs.lever.co/dlocal/a63b7691-0362-4049-9270-e43a7a18c1c6", "ats": "Lever", "date": "2026-05-24", "exec": "1", "file": "vagas_pm_2026-05-24.md", "is_latest": true}, {"company": "dLocal", "role": "Product Manager – Compliance and KYC (Remote)", "url": "https://jobs.lever.co/dlocal/f3cd2b60-fd4a-4e45-add0-3c7d793f1821", "ats": "Lever", "date": "2026-05-24", "exec": "1", "file": "vagas_pm_2026-05-24.md", "is_latest": true}, {"company": "dLocal", "role": "Lead Product Manager – Core Services Finance (Remote)", "url": "https://jobs.lever.co/dlocal/cf31b043-a264-4fe9-a4d9-be0de4f75f46", "ats": "Lever", "date": "2026-05-24", "exec": "1", "file": "vagas_pm_2026-05-24.md", "is_latest": true}, {"company": "dLocal", "role": "Senior Product Manager – Finance Core (Remote)", "url": "https://jobs.lever.co/dlocal/04b0a24d-fe56-49c1-a79b-47603ce2e62c", "ats": "Lever", "date": "2026-05-24", "exec": "1", "file": "vagas_pm_2026-05-24.md", "is_latest": true}, {"company": "Jeeves", "role": "Product Manager – Accounting (Remote, Brazil/Mexico/Colombia)", "url": "https://jobs.lever.co/tryjeeves/83ca9734-ed23-47d0-8a79-2f3b9779a96c", "ats": "Lever", "date": "2026-05-24", "exec": "1", "file": "vagas_pm_2026-05-24.md", "is_latest": true}, {"company": "CI&T", "role": "Product Manager (AI Driven) – Brazil (Remote)", "url": "https://jobs.lever.co/ciandt/d5b56563-1059-43c8-879f-cdf3bffac7e2", "ats": "Lever", "date": "2026-05-24", "exec": "1", "file": "vagas_pm_2026-05-24.md", "is_latest": true}, {"company": "Hubstaff", "role": "Senior Product Manager – Partnerships (Remote, LATAM/Brazil pref.)", "url": "https://jobs.ashbyhq.com/hubstaff/8d1152e8-8a71-4b49-a9d4-44567f7f8481", "ats": "Ashby HQ", "date": "2026-05-24", "exec": "1", "file": "vagas_pm_2026-05-24.md", "is_latest": true}, {"company": "Hopper", "role": "Senior Product Manager – Enterprise/Commerce (100% Remote)", "url": "https://jobs.ashbyhq.com/hopper/35a9bc6c-5426-4986-b5bc-66a29055f26d", "ats": "Ashby HQ", "date": "2026-05-24", "exec": "1", "file": "vagas_pm_2026-05-24.md", "is_latest": true}, {"company": "Deel", "role": "Senior Product Manager – Payroll Expansion (EMEA/APAC, Remote)", "url": "https://jobs.ashbyhq.com/Deel/ce5e7787-4ad1-47ff-9fe5-111b77f71c94", "ats": "Ashby HQ", "date": "2026-05-24", "exec": "1", "file": "vagas_pm_2026-05-24.md", "is_latest": true}, {"company": "Quora", "role": "Senior Product Manager – Core Experience (Remote)", "url": "https://jobs.ashbyhq.com/quora/fb238ccb-dbc4-417c-8fd1-96573d7499b9", "ats": "Ashby HQ", "date": "2026-05-24", "exec": "1", "file": "vagas_pm_2026-05-24.md", "is_latest": true}, {"company": "RevenueCat", "role": "Senior Product Manager – Agents (Remote)", "url": "https://jobs.ashbyhq.com/RevenueCat/ec629bf1-20c1-44db-b852-a603a0154a04", "ats": "Ashby HQ", "date": "2026-05-24", "exec": "1", "file": "vagas_pm_2026-05-24.md", "is_latest": true}, {"company": "RevenueCat", "role": "Senior Product Manager – Analytics & Experiments (Remote)", "url": "https://jobs.ashbyhq.com/revenuecat/53a473db-c3ea-4848-9555-a6103a233658", "ats": "Ashby HQ", "date": "2026-05-24", "exec": "1", "file": "vagas_pm_2026-05-24.md", "is_latest": true}, {"company": "Orca", "role": "Product Manager (Remote)", "url": "https://jobs.ashbyhq.com/orca/c1e2ed21-fe0c-46da-811f-9c2f776c5163", "ats": "Ashby HQ", "date": "2026-05-24", "exec": "1", "file": "vagas_pm_2026-05-24.md", "is_latest": true}, {"company": "RoomPriceGenie", "role": "Group Product Manager – Integrations (Remote)", "url": "https://jobs.ashbyhq.com/roompricegenie/ca402ea5-5717-46ba-af69-e23b934fd552", "ats": "Ashby HQ", "date": "2026-05-24", "exec": "1", "file": "vagas_pm_2026-05-24.md", "is_latest": true}, {"company": "Rula", "role": "Sr. Growth Product Manager (Remote)", "url": "https://jobs.ashbyhq.com/rula/1f169277-0b02-44e0-8113-f4b37027f7c4", "ats": "Ashby HQ", "date": "2026-05-24", "exec": "1", "file": "vagas_pm_2026-05-24.md", "is_latest": true}, {"company": "Lightning Labs", "role": "Technical Product Manager – Bitcoin/Lightning (Remote)", "url": "https://jobs.ashbyhq.com/lightning/2d77b496-ab0d-4e54-bcf8-33260d1bab6b", "ats": "Ashby HQ", "date": "2026-05-24", "exec": "1", "file": "vagas_pm_2026-05-24.md", "is_latest": true}, {"company": "Coinbase", "role": "Product Manager II – LATAM (Remote, Brazil)", "url": "https://boards.greenhouse.io/coinbase/jobs/6648177", "ats": "Greenhouse", "date": "2026-05-24", "exec": "1", "file": "vagas_pm_2026-05-24.md", "is_latest": true}, {"company": "Clara", "role": "Senior Product Manager – LATAM (Remote)", "url": "https://job-boards.greenhouse.io/clara/jobs/4721896007", "ats": "Greenhouse", "date": "2026-05-24", "exec": "1", "file": "vagas_pm_2026-05-24.md", "is_latest": true}, {"company": "Cloudbeds", "role": "Product Manager – Integrations, LATAM (Remote)", "url": "https://job-boards.greenhouse.io/cloudbeds/jobs/4643862005", "ats": "Greenhouse", "date": "2026-05-24", "exec": "1", "file": "vagas_pm_2026-05-24.md", "is_latest": true}, {"company": "Axon", "role": "Senior Product Manager – Brazil (In-Market, Remote)", "url": "https://job-boards.greenhouse.io/axon/jobs/7618530003", "ats": "Greenhouse", "date": "2026-05-24", "exec": "1", "file": "vagas_pm_2026-05-24.md", "is_latest": true}, {"company": "BEES (AB InBev)", "role": "Product Manager – Professional Services (LATAM)", "url": "https://job-boards.greenhouse.io/bees/jobs/8512590002", "ats": "Greenhouse", "date": "2026-05-24", "exec": "1", "file": "vagas_pm_2026-05-24.md", "is_latest": true}, {"company": "PlayStation Global", "role": "Senior Product Manager – LATAM South (Brazil/Argentina)", "url": "https://boards.greenhouse.io/sonyinteractiveentertainmentglobal/jobs/4424740004", "ats": "Greenhouse", "date": "2026-05-24", "exec": "1", "file": "vagas_pm_2026-05-24.md", "is_latest": true}, {"company": "Remote.com", "role": "Product Manager – Payroll (Global, priori. LATAM)", "url": "https://boards.greenhouse.io/remotecom/jobs/5731298003", "ats": "Greenhouse", "date": "2026-05-24", "exec": "1", "file": "vagas_pm_2026-05-24.md", "is_latest": true}, {"company": "Remote.com", "role": "Product Manager – Web Experience (Global)", "url": "https://boards.greenhouse.io/remotecom/jobs/5898957003", "ats": "Greenhouse", "date": "2026-05-24", "exec": "1", "file": "vagas_pm_2026-05-24.md", "is_latest": true}, {"company": "Tenth Revolution Group", "role": "Product Manager – Fully Remote (Global)", "url": "https://weworkremotely.com/remote-jobs/tenth-revolution-group-product-manager-fully-remote", "ats": "We Work Remotely", "date": "2026-05-24", "exec": "1", "file": "vagas_pm_2026-05-24.md", "is_latest": true}, {"company": "Dotmatics", "role": "Product Manager – GraphPad Prism (Remote)", "url": "https://weworkremotely.com/remote-jobs/dotmatics-product-manager-graphpad-prism", "ats": "We Work Remotely", "date": "2026-05-24", "exec": "1", "file": "vagas_pm_2026-05-24.md", "is_latest": true}, {"company": "Workwize", "role": "Product Manager – B2B SaaS (Remote)", "url": "https://weworkremotely.com/remote-jobs/workwize-product-manager-b2b-saas", "ats": "We Work Remotely", "date": "2026-05-24", "exec": "1", "file": "vagas_pm_2026-05-24.md", "is_latest": true}, {"company": "Wallarm", "role": "Growth Product Manager (Remote)", "url": "https://weworkremotely.com/remote-jobs/wallarm-growth-product-manager", "ats": "We Work Remotely", "date": "2026-05-24", "exec": "1", "file": "vagas_pm_2026-05-24.md", "is_latest": true}, {"company": "Toptal", "role": "VP of Product – HireGlobal (Remote)", "url": "https://weworkremotely.com/remote-jobs/toptal-vp-of-product-hireglobal", "ats": "We Work Remotely", "date": "2026-05-24", "exec": "1", "file": "vagas_pm_2026-05-24.md", "is_latest": true}, {"company": "Remote Talent LATAM", "role": "Product Manager / Lead – Remote, LATAM Only", "url": "https://apply.workable.com/remote-talent-latam/j/CD1095C4BE", "ats": "Workable", "date": "2026-05-24", "exec": "1", "file": "vagas_pm_2026-05-24.md", "is_latest": true}, {"company": "CloudLinux", "role": "Technical Product Manager – Worldwide Remote (Work Anywhere)", "url": "https://apply.workable.com/cloudlinux-1/j/F0871C6D23", "ats": "Workable", "date": "2026-05-24", "exec": "1", "file": "vagas_pm_2026-05-24.md", "is_latest": true}, {"company": "Passion.io", "role": "Senior Mobile Apps Product Manager – Global Remote", "url": "https://apply.workable.com/passionio/j/ECD81FB71F", "ats": "Workable", "date": "2026-05-24", "exec": "1", "file": "vagas_pm_2026-05-24.md", "is_latest": true}, {"company": "Experian", "role": "Senior Product Manager – Analytics & Data Products (Remote)", "url": "https://jobs.smartrecruiters.com/Experian/744000112190232-senior-product-manager-analytics-data-products-remote-", "ats": "SmartRecruiters", "date": "2026-05-24", "exec": "1", "file": "vagas_pm_2026-05-24.md", "is_latest": true}, {"company": "Experian", "role": "Senior Product Manager – Global Analytics (Remote)", "url": "https://jobs.smartrecruiters.com/Experian/744000106865314-senior-product-manager-remote-", "ats": "SmartRecruiters", "date": "2026-05-24", "exec": "1", "file": "vagas_pm_2026-05-24.md", "is_latest": true}, {"company": "Revalize", "role": "Senior Product Manager (Remote, EMEA hours)", "url": "https://jobs.smartrecruiters.com/Revalize/744000110132977-senior-product-manager", "ats": "SmartRecruiters", "date": "2026-05-24", "exec": "1", "file": "vagas_pm_2026-05-24.md", "is_latest": true}, {"company": "Shopify", "role": "Senior Product Manager – Rates (Remote, EMEA)", "url": "https://jobs.smartrecruiters.com/shopify/743999802463676-senior-product-manager-rates-remote-emea-", "ats": "SmartRecruiters", "date": "2026-05-24", "exec": "1", "file": "vagas_pm_2026-05-24.md", "is_latest": true}, {"company": "BARBRI", "role": "Product Lead – Remote (Global)", "url": "https://barbri.teamtailor.com/jobs/7514770-product-lead-remote", "ats": "TeamTailor", "date": "2026-05-24", "exec": "1", "file": "vagas_pm_2026-05-24.md", "is_latest": true}];
-const RUNS = [{"date": "2026-05-09", "exec": "1", "file": "vagas_pm_2026-05-09.md", "novas": 0, "jobs": []}, {"date": "2026-05-10", "exec": "1", "file": "vagas_pm_2026-05-10.md", "novas": 0, "jobs": []}, {"date": "2026-05-10", "exec": "2", "file": "vagas_pm_2026-05-10_exec2.md", "novas": 0, "jobs": []}, {"date": "2026-05-11", "exec": "1", "file": "vagas_pm_2026-05-11.md", "novas": 0, "jobs": []}, {"date": "2026-05-12", "exec": "1", "file": "vagas_pm_2026-05-12.md", "novas": 0, "jobs": []}, {"date": "2026-05-13", "exec": "1", "file": "vagas_pm_2026-05-13.md", "novas": 0, "jobs": []}, {"date": "2026-05-13", "exec": "2", "file": "vagas_pm_2026-05-13_exec2.md", "novas": 0, "jobs": []}, {"date": "2026-05-15", "exec": "1", "file": "vagas_pm_2026-05-15.md", "novas": 0, "jobs": []}, {"date": "2026-05-15", "exec": "2", "file": "vagas_pm_2026-05-15_exec2.md", "novas": 0, "jobs": []}, {"date": "2026-05-16", "exec": "1", "file": "vagas_pm_2026-05-16.md", "novas": 0, "jobs": []}, {"date": "2026-05-17", "exec": "1", "file": "vagas_pm_2026-05-17.md", "novas": 0, "jobs": []}, {"date": "2026-05-20", "exec": "1", "file": "vagas_pm_2026-05-20.md", "novas": 0, "jobs": [{"company": "doola", "role": "Product Manager (Remote – Latin America)", "url": "https://jobs.lever.co/doola/741920c3-0493-4226-b37a-799cff27765f", "ats": "Lever", "date": "2026-05-20", "exec": "1", "file": "vagas_pm_2026-05-20.md", "is_latest": false}, {"company": "Jobgether", "role": "Senior Product Manager (Remote) – AI Data Platform", "url": "https://jobs.lever.co/jobgether/64ebff5f-f034-497e-bced-bafc16f595f2", "ats": "Lever", "date": "2026-05-20", "exec": "1", "file": "vagas_pm_2026-05-20.md", "is_latest": false}, {"company": "Jobgether", "role": "Product Manager – REMOTE", "url": "https://jobs.lever.co/jobgether/3906d41a-3ac3-4951-bbde-22edea1db563", "ats": "Lever", "date": "2026-05-20", "exec": "1", "file": "vagas_pm_2026-05-20.md", "is_latest": false}, {"company": "3Pillar Global", "role": "Product Manager (LATAM / Global)", "url": "https://jobs.lever.co/3pillarglobal/be1d7f21-b011-448a-a157-7a1409c1e666", "ats": "Lever", "date": "2026-05-20", "exec": "1", "file": "vagas_pm_2026-05-20.md", "is_latest": false}, {"company": "CompassX Group", "role": "Product Manager (Contrato 6 meses – Remote)", "url": "https://jobs.lever.co/compassx/9085db0d-5e48-4dd0-ad04-e1e8852e72c2", "ats": "Lever", "date": "2026-05-20", "exec": "1", "file": "vagas_pm_2026-05-20.md", "is_latest": false}, {"company": "Owner.com", "role": "Senior PM, Guest Lifecycle & Loyalty", "url": "https://jobs.ashbyhq.com/owner/e20c78e7-296c-448b-8ccf-d0fcccd4ebb6", "ats": "Ashby HQ", "date": "2026-05-20", "exec": "1", "file": "vagas_pm_2026-05-20.md", "is_latest": false}, {"company": "Owner.com", "role": "Senior PM, Product-Led Growth", "url": "https://jobs.ashbyhq.com/owner/0d82c556-d107-4973-805b-d37614f56788", "ats": "Ashby HQ", "date": "2026-05-20", "exec": "1", "file": "vagas_pm_2026-05-20.md", "is_latest": false}, {"company": "RoomPriceGenie", "role": "Group Product Manager – Integrations (Remote)", "url": "https://jobs.ashbyhq.com/roompricegenie/ca402ea5-5717-46ba-af69-e23b934fd552", "ats": "Ashby HQ", "date": "2026-05-20", "exec": "1", "file": "vagas_pm_2026-05-20.md", "is_latest": false}, {"company": "The Global Talent Co.", "role": "Senior Product Marketing Manager (Remote Global)", "url": "https://jobs.ashbyhq.com/the-global-talent-co/2723faef-9dd2-4e70-8e25-bdaf6a462ac1", "ats": "Ashby HQ", "date": "2026-05-20", "exec": "1", "file": "vagas_pm_2026-05-20.md", "is_latest": false}, {"company": "Douro Labs", "role": "Product Manager", "url": "https://jobs.ashbyhq.com/dourolabs.xyz/7058c001-bff0-4dc3-8237-ee71ebcec314", "ats": "Ashby HQ", "date": "2026-05-20", "exec": "1", "file": "vagas_pm_2026-05-20.md", "is_latest": false}, {"company": "Tremendous", "role": "Senior Product Manager (Remote – Global)", "url": "https://jobs.ashbyhq.com/Tremendous/db48b621-647f-410e-8aa9-6af43cdd1797", "ats": "Ashby HQ", "date": "2026-05-20", "exec": "1", "file": "vagas_pm_2026-05-20.md", "is_latest": false}, {"company": "SimSpace Corporation", "role": "Senior Product Manager (Remote)", "url": "https://jobs.ashbyhq.com/simspace-corporation/d731f40e-62b3-41d0-9e65-a5000a3e2676", "ats": "Ashby HQ", "date": "2026-05-20", "exec": "1", "file": "vagas_pm_2026-05-20.md", "is_latest": false}, {"company": "LucidLink", "role": "Senior Product Manager (Remote)", "url": "https://jobs.ashbyhq.com/lucidlink/00c6af1a-b50b-4941-9652-d8fdd92f2e2e", "ats": "Ashby HQ", "date": "2026-05-20", "exec": "1", "file": "vagas_pm_2026-05-20.md", "is_latest": false}, {"company": "Airwallex", "role": "Staff PM, Embedded Finance", "url": "https://jobs.ashbyhq.com/airwallex/c4794257-0db9-464a-8940-bdaf25fc253d", "ats": "Ashby HQ", "date": "2026-05-20", "exec": "1", "file": "vagas_pm_2026-05-20.md", "is_latest": false}, {"company": "EverAI", "role": "Senior AI Product Manager (Remote – Europe)", "url": "https://jobs.ashbyhq.com/everai/694c19b7-d94f-4f66-97a7-5c881b0811bf", "ats": "Ashby HQ", "date": "2026-05-20", "exec": "1", "file": "vagas_pm_2026-05-20.md", "is_latest": false}, {"company": "RevenueCat", "role": "Senior PM, Paywalls (Remote)", "url": "https://jobs.ashbyhq.com/revenuecat/a3794ad6-375e-4b82-adfd-d773959c5706", "ats": "Ashby HQ", "date": "2026-05-20", "exec": "1", "file": "vagas_pm_2026-05-20.md", "is_latest": false}, {"company": "RevenueCat", "role": "Senior PM, Funnels/Workflow (Remote)", "url": "https://jobs.ashbyhq.com/revenuecat/d28235be-172c-40fe-91ae-8453f218f413", "ats": "Ashby HQ", "date": "2026-05-20", "exec": "1", "file": "vagas_pm_2026-05-20.md", "is_latest": false}, {"company": "Remote.com", "role": "Product Manager, Benefits (LATAM / EMEA prioritário)", "url": "https://job-boards.greenhouse.io/remotecom/jobs/7509257003", "ats": "Greenhouse", "date": "2026-05-20", "exec": "1", "file": "vagas_pm_2026-05-20.md", "is_latest": false}, {"company": "Remote.com", "role": "Product Manager, Payments (EMEA / APAC prioritário)", "url": "https://job-boards.greenhouse.io/remotecom/jobs/6627449003", "ats": "Greenhouse", "date": "2026-05-20", "exec": "1", "file": "vagas_pm_2026-05-20.md", "is_latest": false}, {"company": "Remote.com", "role": "Product Manager (Global)", "url": "https://job-boards.greenhouse.io/remotecom/jobs/6909477003", "ats": "Greenhouse", "date": "2026-05-20", "exec": "1", "file": "vagas_pm_2026-05-20.md", "is_latest": false}, {"company": "Gong.io", "role": "Senior PM, International & Enterprise", "url": "https://job-boards.greenhouse.io/gongio/jobs/4625963006", "ats": "Greenhouse", "date": "2026-05-20", "exec": "1", "file": "vagas_pm_2026-05-20.md", "is_latest": false}, {"company": "mpathic", "role": "Product Manager, AI Analytics & Workflows", "url": "https://weworkremotely.com/remote-jobs/mpathic-product-manager-ai-analytics-workflows", "ats": "We Work Remotely", "date": "2026-05-20", "exec": "1", "file": "vagas_pm_2026-05-20.md", "is_latest": false}, {"company": "Method Grid", "role": "Product Manager (Anywhere)", "url": "https://weworkremotely.com/remote-jobs/method-grid-product-manager", "ats": "We Work Remotely", "date": "2026-05-20", "exec": "1", "file": "vagas_pm_2026-05-20.md", "is_latest": false}, {"company": "Plaid", "role": "Product Manager – Payments", "url": "https://weworkremotely.com/remote-jobs/plaid-product-manager-payments", "ats": "We Work Remotely", "date": "2026-05-20", "exec": "1", "file": "vagas_pm_2026-05-20.md", "is_latest": false}, {"company": "Userwise Services", "role": "Product Manager (Anywhere)", "url": "https://weworkremotely.com/remote-jobs/userwise-services-product-manager-1", "ats": "We Work Remotely", "date": "2026-05-20", "exec": "1", "file": "vagas_pm_2026-05-20.md", "is_latest": false}, {"company": "Dotmatics", "role": "Product Manager, GraphPad Prism", "url": "https://weworkremotely.com/remote-jobs/dotmatics-product-manager-graphpad-prism", "ats": "We Work Remotely", "date": "2026-05-20", "exec": "1", "file": "vagas_pm_2026-05-20.md", "is_latest": false}, {"company": "Jump", "role": "Enterprise Product Manager (Remote)", "url": "https://weworkremotely.com/remote-jobs/jump-enterprise-product-manager", "ats": "We Work Remotely", "date": "2026-05-20", "exec": "1", "file": "vagas_pm_2026-05-20.md", "is_latest": false}, {"company": "Intellum", "role": "Senior Product Manager (Anywhere)", "url": "https://weworkremotely.com/remote-jobs/intellum-senior-product-manager", "ats": "We Work Remotely", "date": "2026-05-20", "exec": "1", "file": "vagas_pm_2026-05-20.md", "is_latest": false}, {"company": "Awesome Motive", "role": "Product Manager (Global – incl. Brasil)", "url": "https://weworkremotely.com/remote-jobs/awesome-motive-product-manager", "ats": "We Work Remotely", "date": "2026-05-20", "exec": "1", "file": "vagas_pm_2026-05-20.md", "is_latest": false}, {"company": "Cial Dun & Bradstreet", "role": "Growth Product Manager (Anywhere)", "url": "https://weworkremotely.com/remote-jobs/cial-dun-bradstreet-growth-product-manager", "ats": "We Work Remotely", "date": "2026-05-20", "exec": "1", "file": "vagas_pm_2026-05-20.md", "is_latest": false}, {"company": "thoughtbot", "role": "Product Manager – Remote (EMEA)", "url": "https://apply.workable.com/thoughtbot/j/2A18EE41C3/", "ats": "Workable", "date": "2026-05-20", "exec": "1", "file": "vagas_pm_2026-05-20.md", "is_latest": false}, {"company": "Passion.io", "role": "Senior Mobile Apps PM (Global Remote)", "url": "https://apply.workable.com/passionio/j/ECD81FB71F/", "ats": "Workable", "date": "2026-05-20", "exec": "1", "file": "vagas_pm_2026-05-20.md", "is_latest": false}, {"company": "Tomorrow University", "role": "Senior Product Manager (Remote)", "url": "https://tomorrowuniversity.recruitee.com/o/remote-senior-product-manager-mfd", "ats": "Recruitee / BambooHR", "date": "2026-05-20", "exec": "1", "file": "vagas_pm_2026-05-20.md", "is_latest": false}, {"company": "Proto", "role": "Product Manager (Remote – Anywhere)", "url": "https://protoglobal.bamboohr.com/jobs/view.php?id=95", "ats": "Recruitee / BambooHR", "date": "2026-05-20", "exec": "1", "file": "vagas_pm_2026-05-20.md", "is_latest": false}, {"company": "Afriex", "role": "Product Manager (Remote)", "url": "https://afriex.bamboohr.com/jobs/view.php?id=24", "ats": "Recruitee / BambooHR", "date": "2026-05-20", "exec": "1", "file": "vagas_pm_2026-05-20.md", "is_latest": false}]}, {"date": "2026-05-22", "exec": "1", "file": "vagas_pm_2026-05-22.md", "novas": 0, "jobs": [{"company": "Sphere Laboratories", "role": "Product Manager – Brazil (Remote)", "url": "https://jobs.lever.co/sphere-laboratories/bf7d2430-a2d8-435b-a0cb-264e44c8bb61", "ats": "Lever", "date": "2026-05-22", "exec": "1", "file": "vagas_pm_2026-05-22.md", "is_latest": false}, {"company": "dLocal", "role": "Senior Product Manager – Brazil (Remote)", "url": "https://jobs.lever.co/dlocal/a63b7691-0362-4049-9270-e43a7a18c1c6", "ats": "Lever", "date": "2026-05-22", "exec": "1", "file": "vagas_pm_2026-05-22.md", "is_latest": false}, {"company": "Jeeves", "role": "Product Manager – Accounting (LATAM)", "url": "https://jobs.lever.co/tryjeeves/83ca9734-ed23-47d0-8a79-2f3b9779a96c", "ats": "Lever", "date": "2026-05-22", "exec": "1", "file": "vagas_pm_2026-05-22.md", "is_latest": false}, {"company": "Binance", "role": "Senior Payment Product Manager – LATAM", "url": "https://jobs.lever.co/binance/149ebd74-43d0-4a8a-88a5-5a21c0ffea42", "ats": "Lever", "date": "2026-05-22", "exec": "1", "file": "vagas_pm_2026-05-22.md", "is_latest": false}, {"company": "CI&T", "role": "Product Manager (AI Driven) – Brazil", "url": "https://jobs.lever.co/ciandt/d5b56563-1059-43c8-879f-cdf3bffac7e2/apply", "ats": "Lever", "date": "2026-05-22", "exec": "1", "file": "vagas_pm_2026-05-22.md", "is_latest": false}, {"company": "Bluelight Consulting", "role": "Product Manager – Remote, Latin America", "url": "https://jobs.lever.co/bluelightconsulting/cae16fc8-5441-4999-a480-7e5fbb814edd", "ats": "Lever", "date": "2026-05-22", "exec": "1", "file": "vagas_pm_2026-05-22.md", "is_latest": false}, {"company": "Yuno", "role": "Senior Product Manager SDK (Americas / EMEA Remote)", "url": "https://jobs.lever.co/yuno/52be3369-2156-48c3-b498-4c37d23e33e2", "ats": "Lever", "date": "2026-05-22", "exec": "1", "file": "vagas_pm_2026-05-22.md", "is_latest": false}, {"company": "Canary Technologies", "role": "Senior Product Manager (EMEA – Remote)", "url": "https://jobs.lever.co/canarytechnologies/bddbef67-30e1-4222-8c1b-8d088bfa4ee3", "ats": "Lever", "date": "2026-05-22", "exec": "1", "file": "vagas_pm_2026-05-22.md", "is_latest": false}, {"company": "Insider", "role": "Product Manager – B2B SaaS Martech (Remote)", "url": "https://jobs.lever.co/useinsider/3dcbb21d-42a9-4c20-9304-73039d8dfe9c", "ats": "Lever", "date": "2026-05-22", "exec": "1", "file": "vagas_pm_2026-05-22.md", "is_latest": false}, {"company": "Jobgether", "role": "Senior Product Manager – API (Remote from Argentina)", "url": "https://jobs.lever.co/jobgether/6e05d353-a9ba-4527-aa1c-6e1cb9fe52d7", "ats": "Lever", "date": "2026-05-22", "exec": "1", "file": "vagas_pm_2026-05-22.md", "is_latest": false}, {"company": "Jobgether", "role": "Senior Product Manager (Remote)", "url": "https://jobs.lever.co/jobgether/a1f9da05-2439-44be-a571-2a3b4108ebbb", "ats": "Lever", "date": "2026-05-22", "exec": "1", "file": "vagas_pm_2026-05-22.md", "is_latest": false}, {"company": "Hopper", "role": "Senior Product Manager – Enterprise / Commerce (100% Remote)", "url": "https://jobs.ashbyhq.com/hopper/35a9bc6c-5426-4986-b5bc-66a29055f26d", "ats": "Ashby HQ", "date": "2026-05-22", "exec": "1", "file": "vagas_pm_2026-05-22.md", "is_latest": false}, {"company": "LemFi", "role": "Senior Product Manager (Remote – Global South)", "url": "https://jobs.ashbyhq.com/lemfi/cf46d44e-aced-4336-95a8-ba0815bba93c", "ats": "Ashby HQ", "date": "2026-05-22", "exec": "1", "file": "vagas_pm_2026-05-22.md", "is_latest": false}, {"company": "Moovx", "role": "Product Owner (Remote)", "url": "https://jobs.ashbyhq.com/moovx/ed0738a4-9bb1-49de-867b-b19061fa5066", "ats": "Ashby HQ", "date": "2026-05-22", "exec": "1", "file": "vagas_pm_2026-05-22.md", "is_latest": false}, {"company": "Quora", "role": "Senior Product Manager – Core Experience (Remote)", "url": "https://jobs.ashbyhq.com/quora/fb238ccb-dbc4-417c-8fd1-96573d7499b9", "ats": "Ashby HQ", "date": "2026-05-22", "exec": "1", "file": "vagas_pm_2026-05-22.md", "is_latest": false}, {"company": "Orca", "role": "Product Manager (Remote)", "url": "https://jobs.ashbyhq.com/orca/c1e2ed21-fe0c-46da-811f-9c2f776c5163", "ats": "Ashby HQ", "date": "2026-05-22", "exec": "1", "file": "vagas_pm_2026-05-22.md", "is_latest": false}, {"company": "Colonist", "role": "Product Manager – Platform (Remote – Anywhere)", "url": "https://jobs.ashbyhq.com/colonist/aa22a805-1cbd-4309-b207-feaef9c89809", "ats": "Ashby HQ", "date": "2026-05-22", "exec": "1", "file": "vagas_pm_2026-05-22.md", "is_latest": false}, {"company": "Colonist", "role": "Product Manager – Game (Remote – Anywhere)", "url": "https://jobs.ashbyhq.com/colonist/7a3936e8-dc97-4324-8570-6de716c7d453", "ats": "Ashby HQ", "date": "2026-05-22", "exec": "1", "file": "vagas_pm_2026-05-22.md", "is_latest": false}, {"company": "SimSpace Corporation", "role": "Principal Product Manager (Remote)", "url": "https://jobs.ashbyhq.com/simspace-corporation/353a22f8-76ac-47bb-90b3-7634e9bb4b3c", "ats": "Ashby HQ", "date": "2026-05-22", "exec": "1", "file": "vagas_pm_2026-05-22.md", "is_latest": false}, {"company": "LucidLink", "role": "Senior Product Manager – Platform (Remote)", "url": "https://jobs.ashbyhq.com/lucidlink/7ce76341-933d-4f4a-8799-0d93e8fc0330", "ats": "Ashby HQ", "date": "2026-05-22", "exec": "1", "file": "vagas_pm_2026-05-22.md", "is_latest": false}, {"company": "Coinbase", "role": "Product Manager II – LATAM (Remote, Brazil)", "url": "https://boards.greenhouse.io/coinbase/jobs/6648177", "ats": "Greenhouse", "date": "2026-05-22", "exec": "1", "file": "vagas_pm_2026-05-22.md", "is_latest": false}, {"company": "LumiMeds", "role": "Senior / Lead Technical Product Manager (Remote – LATAM incl. Brasil e México)", "url": "https://job-boards.greenhouse.io/lumimeds/jobs/4227386009", "ats": "Greenhouse", "date": "2026-05-22", "exec": "1", "file": "vagas_pm_2026-05-22.md", "is_latest": false}, {"company": "Remote.com", "role": "Product Manager – Billing (Global, priori. LATAM / EMEA)", "url": "https://boards.greenhouse.io/remotecom/jobs/6064626003", "ats": "Greenhouse", "date": "2026-05-22", "exec": "1", "file": "vagas_pm_2026-05-22.md", "is_latest": false}, {"company": "Remote.com", "role": "Product Manager – Web Experience (Global, priori. LATAM / EMEA)", "url": "https://boards.greenhouse.io/remotecom/jobs/5898957003", "ats": "Greenhouse", "date": "2026-05-22", "exec": "1", "file": "vagas_pm_2026-05-22.md", "is_latest": false}, {"company": "Remote.com", "role": "Product Manager – Payroll (Global)", "url": "https://boards.greenhouse.io/remotecom/jobs/5731298003", "ats": "Greenhouse", "date": "2026-05-22", "exec": "1", "file": "vagas_pm_2026-05-22.md", "is_latest": false}, {"company": "Cloudbeds", "role": "Product Manager – Integrations LATAM", "url": "https://job-boards.greenhouse.io/cloudbeds/jobs/4643862005", "ats": "Greenhouse", "date": "2026-05-22", "exec": "1", "file": "vagas_pm_2026-05-22.md", "is_latest": false}, {"company": "Gladly", "role": "Senior Product Manager – Consumer LATAM (Remote)", "url": "https://boards.greenhouse.io/embed/job_app?for=sagansystems&token=7232866", "ats": "Greenhouse", "date": "2026-05-22", "exec": "1", "file": "vagas_pm_2026-05-22.md", "is_latest": false}, {"company": "MagicSchool AI", "role": "Product Manager – Enterprise (Remote)", "url": "https://weworkremotely.com/remote-jobs/magicschool-ai-product-manager-enterprise-prise", "ats": "We Work Remotely", "date": "2026-05-22", "exec": "1", "file": "vagas_pm_2026-05-22.md", "is_latest": false}, {"company": "Workwize", "role": "Product Manager – B2B SaaS (Remote)", "url": "https://weworkremotely.com/remote-jobs/workwize-product-manager-b2b-saas", "ats": "We Work Remotely", "date": "2026-05-22", "exec": "1", "file": "vagas_pm_2026-05-22.md", "is_latest": false}, {"company": "eDesk", "role": "Product Manager (Remote)", "url": "https://weworkremotely.com/remote-jobs/edesk-product-manager", "ats": "We Work Remotely", "date": "2026-05-22", "exec": "1", "file": "vagas_pm_2026-05-22.md", "is_latest": false}, {"company": "Tenth Revolution Group", "role": "Product Manager – Fully Remote", "url": "https://weworkremotely.com/remote-jobs/tenth-revolution-group-product-manager-fully-remote", "ats": "We Work Remotely", "date": "2026-05-22", "exec": "1", "file": "vagas_pm_2026-05-22.md", "is_latest": false}, {"company": "Instacart", "role": "Senior Product Manager – Marketing Experiences & Growth (Remote)", "url": "https://weworkremotely.com/remote-jobs/instacart-senior-product-manager-marketing-experiences-growth", "ats": "We Work Remotely", "date": "2026-05-22", "exec": "1", "file": "vagas_pm_2026-05-22.md", "is_latest": false}, {"company": "Degreed", "role": "Senior Product Manager (Remote)", "url": "https://weworkremotely.com/remote-jobs/degreed-senior-product-manager", "ats": "We Work Remotely", "date": "2026-05-22", "exec": "1", "file": "vagas_pm_2026-05-22.md", "is_latest": false}, {"company": "Payra", "role": "Product Lead – Data Products (Remote)", "url": "https://weworkremotely.com/remote-jobs/payra-product-lead-data-products", "ats": "We Work Remotely", "date": "2026-05-22", "exec": "1", "file": "vagas_pm_2026-05-22.md", "is_latest": false}, {"company": "Remote Talent LATAM", "role": "Product Manager / Lead – LATAM Only (Remote)", "url": "https://apply.workable.com/remote-talent-latam/j/CD1095C4BE", "ats": "Workable", "date": "2026-05-22", "exec": "1", "file": "vagas_pm_2026-05-22.md", "is_latest": false}, {"company": "Jobgether", "role": "Product Manager – Supplements (Remote from Latin America)", "url": "https://apply.workable.com/jobgether/j/7E5BDB0246/", "ats": "Workable", "date": "2026-05-22", "exec": "1", "file": "vagas_pm_2026-05-22.md", "is_latest": false}, {"company": "CloudLinux", "role": "Technical Product Manager (Worldwide Remote – Anywhere)", "url": "https://apply.workable.com/cloudlinux-1/j/F0871C6D23", "ats": "Workable", "date": "2026-05-22", "exec": "1", "file": "vagas_pm_2026-05-22.md", "is_latest": false}, {"company": "Jobgether", "role": "Senior Product Manager (Remote – Anywhere)", "url": "https://apply.workable.com/jobgether/j/16CB0B4D28", "ats": "Workable", "date": "2026-05-22", "exec": "1", "file": "vagas_pm_2026-05-22.md", "is_latest": false}]}, {"date": "2026-05-23", "exec": "1", "file": "vagas_pm_2026-05-23.md", "novas": 0, "jobs": [{"company": "dLocal", "role": "Senior Product Manager – Finance LATAM (Remote)", "url": "https://jobs.lever.co/dlocal/e82fd6d9-3b8e-484d-b1f5-ee21d096b896", "ats": "Lever", "date": "2026-05-23", "exec": "1", "file": "vagas_pm_2026-05-23.md", "is_latest": false}, {"company": "Airtm", "role": "Product Manager (AI & Blockchain) – LATAM", "url": "https://jobs.lever.co/airtm/44ebf59f-6f7e-4ed1-92dd-d3679b99c98e", "ats": "Lever", "date": "2026-05-23", "exec": "1", "file": "vagas_pm_2026-05-23.md", "is_latest": false}, {"company": "3Pillar Global", "role": "Product Manager (Remote – LATAM delivery centers)", "url": "https://jobs.lever.co/3pillarglobal/be1d7f21-b011-448a-a157-7a1409c1e666", "ats": "Lever", "date": "2026-05-23", "exec": "1", "file": "vagas_pm_2026-05-23.md", "is_latest": false}, {"company": "Apply Digital", "role": "Senior Product Manager (Remote)", "url": "https://jobs.lever.co/applydigital/48b1d20b-ce9d-47b2-9d86-9e3fbffb10f5", "ats": "Lever", "date": "2026-05-23", "exec": "1", "file": "vagas_pm_2026-05-23.md", "is_latest": false}, {"company": "Hopper", "role": "Principal Product Manager – Distribution (100% Remote)", "url": "https://jobs.ashbyhq.com/hopper/b86991dd-71a4-4188-9c0d-08205367e312", "ats": "Ashby HQ", "date": "2026-05-23", "exec": "1", "file": "vagas_pm_2026-05-23.md", "is_latest": false}, {"company": "Quora", "role": "Principal Product Manager – Growth, Poe (Remote)", "url": "https://jobs.ashbyhq.com/quora/b55763b6-0a98-479c-8199-9972fce6486c", "ats": "Ashby HQ", "date": "2026-05-23", "exec": "1", "file": "vagas_pm_2026-05-23.md", "is_latest": false}, {"company": "Quora", "role": "Senior Product Manager – Ads (Remote)", "url": "https://jobs.ashbyhq.com/quora/d6f83da3-6de0-48d2-b655-09ff1e59e813", "ats": "Ashby HQ", "date": "2026-05-23", "exec": "1", "file": "vagas_pm_2026-05-23.md", "is_latest": false}, {"company": "SimSpace Corporation", "role": "Senior Product Manager (Remote)", "url": "https://jobs.ashbyhq.com/simspace-corporation/d731f40e-62b3-41d0-9e65-a5000a3e2676", "ats": "Ashby HQ", "date": "2026-05-23", "exec": "1", "file": "vagas_pm_2026-05-23.md", "is_latest": false}, {"company": "Deel", "role": "Senior Product Manager (Global Remote)", "url": "https://jobs.ashbyhq.com/Deel/3729df77-5669-49f9-9614-33be8abd7549", "ats": "Ashby HQ", "date": "2026-05-23", "exec": "1", "file": "vagas_pm_2026-05-23.md", "is_latest": false}, {"company": "Invert", "role": "Product Manager (Remote – AI & Biology)", "url": "https://jobs.ashbyhq.com/invert/4642a4d3-afec-4df7-a89f-d8ec05aa1e84", "ats": "Ashby HQ", "date": "2026-05-23", "exec": "1", "file": "vagas_pm_2026-05-23.md", "is_latest": false}, {"company": "Airwallex", "role": "Senior Product Manager – Corporate Site (Global)", "url": "https://jobs.ashbyhq.com/airwallex/5488d78e-72fb-4c26-b743-af0fca4069c0", "ats": "Ashby HQ", "date": "2026-05-23", "exec": "1", "file": "vagas_pm_2026-05-23.md", "is_latest": false}, {"company": "Airwallex", "role": "Staff Product Manager – Embedded Finance (Global)", "url": "https://jobs.ashbyhq.com/airwallex/c4794257-0db9-464a-8940-bdaf25fc253d", "ats": "Ashby HQ", "date": "2026-05-23", "exec": "1", "file": "vagas_pm_2026-05-23.md", "is_latest": false}, {"company": "Airwallex", "role": "Senior Product Manager – AI Developer Experience (Global)", "url": "https://jobs.ashbyhq.com/airwallex/23b569cd-d5b5-48fa-b205-f75334be57d7", "ats": "Ashby HQ", "date": "2026-05-23", "exec": "1", "file": "vagas_pm_2026-05-23.md", "is_latest": false}, {"company": "SplitMetrics", "role": "Senior Product Manager – Core (Remote)", "url": "https://jobs.ashbyhq.com/splitmetrics/9517133e-b4f5-4056-9c70-091ef9451226", "ats": "Ashby HQ", "date": "2026-05-23", "exec": "1", "file": "vagas_pm_2026-05-23.md", "is_latest": false}, {"company": "RevenueCat", "role": "Senior Product Manager – Paywalls (Remote)", "url": "https://jobs.ashbyhq.com/revenuecat/a3794ad6-375e-4b82-adfd-d773959c5706", "ats": "Ashby HQ", "date": "2026-05-23", "exec": "1", "file": "vagas_pm_2026-05-23.md", "is_latest": false}, {"company": "Remote.com", "role": "Product Manager – Benefits (Global, priori. EMEA / AMER)", "url": "https://job-boards.greenhouse.io/remotecom/jobs/7509257003", "ats": "Greenhouse", "date": "2026-05-23", "exec": "1", "file": "vagas_pm_2026-05-23.md", "is_latest": false}, {"company": "Remote.com", "role": "Product Manager – Payments (Global, priori. EMEA / APAC)", "url": "https://job-boards.greenhouse.io/remotecom/jobs/6627449003", "ats": "Greenhouse", "date": "2026-05-23", "exec": "1", "file": "vagas_pm_2026-05-23.md", "is_latest": false}, {"company": "Remote.com", "role": "Senior Product Manager – Growth (Global)", "url": "https://job-boards.greenhouse.io/remotecom/jobs/6567499003", "ats": "Greenhouse", "date": "2026-05-23", "exec": "1", "file": "vagas_pm_2026-05-23.md", "is_latest": false}, {"company": "Remote.com", "role": "Product-Led Growth Manager (Global)", "url": "https://job-boards.greenhouse.io/remotecom/jobs/7703886003", "ats": "Greenhouse", "date": "2026-05-23", "exec": "1", "file": "vagas_pm_2026-05-23.md", "is_latest": false}, {"company": "Remote.com", "role": "Product Manager – Benefits Integrations (Global, priori. LATAM / EMEA)", "url": "https://boards.greenhouse.io/remotecom/jobs/5943916003", "ats": "Greenhouse", "date": "2026-05-23", "exec": "1", "file": "vagas_pm_2026-05-23.md", "is_latest": false}, {"company": "Sporty Group", "role": "Product Manager – Brazil (Remote)", "url": "https://job-boards.greenhouse.io/sportygroup/jobs/4748134101", "ats": "Greenhouse", "date": "2026-05-23", "exec": "1", "file": "vagas_pm_2026-05-23.md", "is_latest": false}, {"company": "Degreed", "role": "Product Manager – EMEA Remote", "url": "https://boards.greenhouse.io/degreed/jobs/4144849004", "ats": "Greenhouse", "date": "2026-05-23", "exec": "1", "file": "vagas_pm_2026-05-23.md", "is_latest": false}, {"company": "Workleap", "role": "Senior Product Manager – ShareGate Platform (Remote)", "url": "https://weworkremotely.com/remote-jobs/workleap-senior-product-manager-sharegate-platform", "ats": "We Work Remotely", "date": "2026-05-23", "exec": "1", "file": "vagas_pm_2026-05-23.md", "is_latest": false}, {"company": "Global HR Solutions", "role": "Group Product Manager (Remote – Brazil elegível)", "url": "https://weworkremotely.com/remote-jobs/global-hr-solutions-employment-tools-for-distributed-teams-group-product-manager", "ats": "We Work Remotely", "date": "2026-05-23", "exec": "1", "file": "vagas_pm_2026-05-23.md", "is_latest": false}, {"company": "thoughtbot", "role": "Product Manager – Remote (EMEA)", "url": "https://apply.workable.com/thoughtbot/j/2A18EE41C3/", "ats": "Workable", "date": "2026-05-23", "exec": "1", "file": "vagas_pm_2026-05-23.md", "is_latest": false}, {"company": "Simprints", "role": "Lead Product Manager – Remote (Global)", "url": "https://apply.workable.com/simprints/j/85F40D61DF", "ats": "Workable", "date": "2026-05-23", "exec": "1", "file": "vagas_pm_2026-05-23.md", "is_latest": false}, {"company": "Canva", "role": "Senior Product Manager – LATAM", "url": "https://jobs.smartrecruiters.com/Canva/6000000000445554-senior-product-manager-latam", "ats": "SmartRecruiters", "date": "2026-05-23", "exec": "1", "file": "vagas_pm_2026-05-23.md", "is_latest": false}, {"company": "Shopify", "role": "Product Manager – Shop Minis – Remote (EMEA)", "url": "https://jobs.smartrecruiters.com/Shopify/743999809992524-product-manager-shop-minis-remote-emea-", "ats": "SmartRecruiters", "date": "2026-05-23", "exec": "1", "file": "vagas_pm_2026-05-23.md", "is_latest": false}, {"company": "Remote World", "role": "Product Manager (Remote – Anywhere)", "url": "https://remoteworld.teamtailor.com/jobs/7629867-product-manager", "ats": "TeamTailor", "date": "2026-05-23", "exec": "1", "file": "vagas_pm_2026-05-23.md", "is_latest": false}]}, {"date": "2026-05-24", "exec": "1", "file": "vagas_pm_2026-05-24.md", "novas": 0, "jobs": [{"company": "Sphere Laboratories", "role": "Product Manager – Brazil (Fintech/Stablecoins, Remote)", "url": "https://jobs.lever.co/sphere-laboratories/bf7d2430-a2d8-435b-a0cb-264e44c8bb61", "ats": "Lever", "date": "2026-05-24", "exec": "1", "file": "vagas_pm_2026-05-24.md", "is_latest": true}, {"company": "Bluelight Consulting", "role": "Product Manager – Remote, Latin America", "url": "https://jobs.lever.co/bluelightconsulting/cae16fc8-5441-4999-a480-7e5fbb814edd", "ats": "Lever", "date": "2026-05-24", "exec": "1", "file": "vagas_pm_2026-05-24.md", "is_latest": true}, {"company": "Binance", "role": "Senior Payment Product Manager – LATAM", "url": "https://jobs.lever.co/binance/149ebd74-43d0-4a8a-88a5-5a21c0ffea42", "ats": "Lever", "date": "2026-05-24", "exec": "1", "file": "vagas_pm_2026-05-24.md", "is_latest": true}, {"company": "dLocal", "role": "Senior Product Manager – Brazil (Remote)", "url": "https://jobs.lever.co/dlocal/a63b7691-0362-4049-9270-e43a7a18c1c6", "ats": "Lever", "date": "2026-05-24", "exec": "1", "file": "vagas_pm_2026-05-24.md", "is_latest": true}, {"company": "dLocal", "role": "Product Manager – Compliance and KYC (Remote)", "url": "https://jobs.lever.co/dlocal/f3cd2b60-fd4a-4e45-add0-3c7d793f1821", "ats": "Lever", "date": "2026-05-24", "exec": "1", "file": "vagas_pm_2026-05-24.md", "is_latest": true}, {"company": "dLocal", "role": "Lead Product Manager – Core Services Finance (Remote)", "url": "https://jobs.lever.co/dlocal/cf31b043-a264-4fe9-a4d9-be0de4f75f46", "ats": "Lever", "date": "2026-05-24", "exec": "1", "file": "vagas_pm_2026-05-24.md", "is_latest": true}, {"company": "dLocal", "role": "Senior Product Manager – Finance Core (Remote)", "url": "https://jobs.lever.co/dlocal/04b0a24d-fe56-49c1-a79b-47603ce2e62c", "ats": "Lever", "date": "2026-05-24", "exec": "1", "file": "vagas_pm_2026-05-24.md", "is_latest": true}, {"company": "Jeeves", "role": "Product Manager – Accounting (Remote, Brazil/Mexico/Colombia)", "url": "https://jobs.lever.co/tryjeeves/83ca9734-ed23-47d0-8a79-2f3b9779a96c", "ats": "Lever", "date": "2026-05-24", "exec": "1", "file": "vagas_pm_2026-05-24.md", "is_latest": true}, {"company": "CI&T", "role": "Product Manager (AI Driven) – Brazil (Remote)", "url": "https://jobs.lever.co/ciandt/d5b56563-1059-43c8-879f-cdf3bffac7e2", "ats": "Lever", "date": "2026-05-24", "exec": "1", "file": "vagas_pm_2026-05-24.md", "is_latest": true}, {"company": "Hubstaff", "role": "Senior Product Manager – Partnerships (Remote, LATAM/Brazil pref.)", "url": "https://jobs.ashbyhq.com/hubstaff/8d1152e8-8a71-4b49-a9d4-44567f7f8481", "ats": "Ashby HQ", "date": "2026-05-24", "exec": "1", "file": "vagas_pm_2026-05-24.md", "is_latest": true}, {"company": "Hopper", "role": "Senior Product Manager – Enterprise/Commerce (100% Remote)", "url": "https://jobs.ashbyhq.com/hopper/35a9bc6c-5426-4986-b5bc-66a29055f26d", "ats": "Ashby HQ", "date": "2026-05-24", "exec": "1", "file": "vagas_pm_2026-05-24.md", "is_latest": true}, {"company": "Deel", "role": "Senior Product Manager – Payroll Expansion (EMEA/APAC, Remote)", "url": "https://jobs.ashbyhq.com/Deel/ce5e7787-4ad1-47ff-9fe5-111b77f71c94", "ats": "Ashby HQ", "date": "2026-05-24", "exec": "1", "file": "vagas_pm_2026-05-24.md", "is_latest": true}, {"company": "Quora", "role": "Senior Product Manager – Core Experience (Remote)", "url": "https://jobs.ashbyhq.com/quora/fb238ccb-dbc4-417c-8fd1-96573d7499b9", "ats": "Ashby HQ", "date": "2026-05-24", "exec": "1", "file": "vagas_pm_2026-05-24.md", "is_latest": true}, {"company": "RevenueCat", "role": "Senior Product Manager – Agents (Remote)", "url": "https://jobs.ashbyhq.com/RevenueCat/ec629bf1-20c1-44db-b852-a603a0154a04", "ats": "Ashby HQ", "date": "2026-05-24", "exec": "1", "file": "vagas_pm_2026-05-24.md", "is_latest": true}, {"company": "RevenueCat", "role": "Senior Product Manager – Analytics & Experiments (Remote)", "url": "https://jobs.ashbyhq.com/revenuecat/53a473db-c3ea-4848-9555-a6103a233658", "ats": "Ashby HQ", "date": "2026-05-24", "exec": "1", "file": "vagas_pm_2026-05-24.md", "is_latest": true}, {"company": "Orca", "role": "Product Manager (Remote)", "url": "https://jobs.ashbyhq.com/orca/c1e2ed21-fe0c-46da-811f-9c2f776c5163", "ats": "Ashby HQ", "date": "2026-05-24", "exec": "1", "file": "vagas_pm_2026-05-24.md", "is_latest": true}, {"company": "RoomPriceGenie", "role": "Group Product Manager – Integrations (Remote)", "url": "https://jobs.ashbyhq.com/roompricegenie/ca402ea5-5717-46ba-af69-e23b934fd552", "ats": "Ashby HQ", "date": "2026-05-24", "exec": "1", "file": "vagas_pm_2026-05-24.md", "is_latest": true}, {"company": "Rula", "role": "Sr. Growth Product Manager (Remote)", "url": "https://jobs.ashbyhq.com/rula/1f169277-0b02-44e0-8113-f4b37027f7c4", "ats": "Ashby HQ", "date": "2026-05-24", "exec": "1", "file": "vagas_pm_2026-05-24.md", "is_latest": true}, {"company": "Lightning Labs", "role": "Technical Product Manager – Bitcoin/Lightning (Remote)", "url": "https://jobs.ashbyhq.com/lightning/2d77b496-ab0d-4e54-bcf8-33260d1bab6b", "ats": "Ashby HQ", "date": "2026-05-24", "exec": "1", "file": "vagas_pm_2026-05-24.md", "is_latest": true}, {"company": "Coinbase", "role": "Product Manager II – LATAM (Remote, Brazil)", "url": "https://boards.greenhouse.io/coinbase/jobs/6648177", "ats": "Greenhouse", "date": "2026-05-24", "exec": "1", "file": "vagas_pm_2026-05-24.md", "is_latest": true}, {"company": "Clara", "role": "Senior Product Manager – LATAM (Remote)", "url": "https://job-boards.greenhouse.io/clara/jobs/4721896007", "ats": "Greenhouse", "date": "2026-05-24", "exec": "1", "file": "vagas_pm_2026-05-24.md", "is_latest": true}, {"company": "Cloudbeds", "role": "Product Manager – Integrations, LATAM (Remote)", "url": "https://job-boards.greenhouse.io/cloudbeds/jobs/4643862005", "ats": "Greenhouse", "date": "2026-05-24", "exec": "1", "file": "vagas_pm_2026-05-24.md", "is_latest": true}, {"company": "Axon", "role": "Senior Product Manager – Brazil (In-Market, Remote)", "url": "https://job-boards.greenhouse.io/axon/jobs/7618530003", "ats": "Greenhouse", "date": "2026-05-24", "exec": "1", "file": "vagas_pm_2026-05-24.md", "is_latest": true}, {"company": "BEES (AB InBev)", "role": "Product Manager – Professional Services (LATAM)", "url": "https://job-boards.greenhouse.io/bees/jobs/8512590002", "ats": "Greenhouse", "date": "2026-05-24", "exec": "1", "file": "vagas_pm_2026-05-24.md", "is_latest": true}, {"company": "PlayStation Global", "role": "Senior Product Manager – LATAM South (Brazil/Argentina)", "url": "https://boards.greenhouse.io/sonyinteractiveentertainmentglobal/jobs/4424740004", "ats": "Greenhouse", "date": "2026-05-24", "exec": "1", "file": "vagas_pm_2026-05-24.md", "is_latest": true}, {"company": "Remote.com", "role": "Product Manager – Payroll (Global, priori. LATAM)", "url": "https://boards.greenhouse.io/remotecom/jobs/5731298003", "ats": "Greenhouse", "date": "2026-05-24", "exec": "1", "file": "vagas_pm_2026-05-24.md", "is_latest": true}, {"company": "Remote.com", "role": "Product Manager – Web Experience (Global)", "url": "https://boards.greenhouse.io/remotecom/jobs/5898957003", "ats": "Greenhouse", "date": "2026-05-24", "exec": "1", "file": "vagas_pm_2026-05-24.md", "is_latest": true}, {"company": "Tenth Revolution Group", "role": "Product Manager – Fully Remote (Global)", "url": "https://weworkremotely.com/remote-jobs/tenth-revolution-group-product-manager-fully-remote", "ats": "We Work Remotely", "date": "2026-05-24", "exec": "1", "file": "vagas_pm_2026-05-24.md", "is_latest": true}, {"company": "Dotmatics", "role": "Product Manager – GraphPad Prism (Remote)", "url": "https://weworkremotely.com/remote-jobs/dotmatics-product-manager-graphpad-prism", "ats": "We Work Remotely", "date": "2026-05-24", "exec": "1", "file": "vagas_pm_2026-05-24.md", "is_latest": true}, {"company": "Workwize", "role": "Product Manager – B2B SaaS (Remote)", "url": "https://weworkremotely.com/remote-jobs/workwize-product-manager-b2b-saas", "ats": "We Work Remotely", "date": "2026-05-24", "exec": "1", "file": "vagas_pm_2026-05-24.md", "is_latest": true}, {"company": "Wallarm", "role": "Growth Product Manager (Remote)", "url": "https://weworkremotely.com/remote-jobs/wallarm-growth-product-manager", "ats": "We Work Remotely", "date": "2026-05-24", "exec": "1", "file": "vagas_pm_2026-05-24.md", "is_latest": true}, {"company": "Toptal", "role": "VP of Product – HireGlobal (Remote)", "url": "https://weworkremotely.com/remote-jobs/toptal-vp-of-product-hireglobal", "ats": "We Work Remotely", "date": "2026-05-24", "exec": "1", "file": "vagas_pm_2026-05-24.md", "is_latest": true}, {"company": "Remote Talent LATAM", "role": "Product Manager / Lead – Remote, LATAM Only", "url": "https://apply.workable.com/remote-talent-latam/j/CD1095C4BE", "ats": "Workable", "date": "2026-05-24", "exec": "1", "file": "vagas_pm_2026-05-24.md", "is_latest": true}, {"company": "CloudLinux", "role": "Technical Product Manager – Worldwide Remote (Work Anywhere)", "url": "https://apply.workable.com/cloudlinux-1/j/F0871C6D23", "ats": "Workable", "date": "2026-05-24", "exec": "1", "file": "vagas_pm_2026-05-24.md", "is_latest": true}, {"company": "Passion.io", "role": "Senior Mobile Apps Product Manager – Global Remote", "url": "https://apply.workable.com/passionio/j/ECD81FB71F", "ats": "Workable", "date": "2026-05-24", "exec": "1", "file": "vagas_pm_2026-05-24.md", "is_latest": true}, {"company": "Experian", "role": "Senior Product Manager – Analytics & Data Products (Remote)", "url": "https://jobs.smartrecruiters.com/Experian/744000112190232-senior-product-manager-analytics-data-products-remote-", "ats": "SmartRecruiters", "date": "2026-05-24", "exec": "1", "file": "vagas_pm_2026-05-24.md", "is_latest": true}, {"company": "Experian", "role": "Senior Product Manager – Global Analytics (Remote)", "url": "https://jobs.smartrecruiters.com/Experian/744000106865314-senior-product-manager-remote-", "ats": "SmartRecruiters", "date": "2026-05-24", "exec": "1", "file": "vagas_pm_2026-05-24.md", "is_latest": true}, {"company": "Revalize", "role": "Senior Product Manager (Remote, EMEA hours)", "url": "https://jobs.smartrecruiters.com/Revalize/744000110132977-senior-product-manager", "ats": "SmartRecruiters", "date": "2026-05-24", "exec": "1", "file": "vagas_pm_2026-05-24.md", "is_latest": true}, {"company": "Shopify", "role": "Senior Product Manager – Rates (Remote, EMEA)", "url": "https://jobs.smartrecruiters.com/shopify/743999802463676-senior-product-manager-rates-remote-emea-", "ats": "SmartRecruiters", "date": "2026-05-24", "exec": "1", "file": "vagas_pm_2026-05-24.md", "is_latest": true}, {"company": "BARBRI", "role": "Product Lead – Remote (Global)", "url": "https://barbri.teamtailor.com/jobs/7514770-product-lead-remote", "ats": "TeamTailor", "date": "2026-05-24", "exec": "1", "file": "vagas_pm_2026-05-24.md", "is_latest": true}], "is_latest": true}];
+const RUNS     = [{"date": "2026-05-09", "exec": "1", "file": "vagas_pm_2026-05-09.md", "novas": 0, "jobs": []}, {"date": "2026-05-10", "exec": "1", "file": "vagas_pm_2026-05-10.md", "novas": 0, "jobs": []}, {"date": "2026-05-10", "exec": "2", "file": "vagas_pm_2026-05-10_exec2.md", "novas": 0, "jobs": []}, {"date": "2026-05-11", "exec": "1", "file": "vagas_pm_2026-05-11.md", "novas": 0, "jobs": []}, {"date": "2026-05-12", "exec": "1", "file": "vagas_pm_2026-05-12.md", "novas": 0, "jobs": []}, {"date": "2026-05-13", "exec": "1", "file": "vagas_pm_2026-05-13.md", "novas": 0, "jobs": []}, {"date": "2026-05-13", "exec": "2", "file": "vagas_pm_2026-05-13_exec2.md", "novas": 0, "jobs": []}, {"date": "2026-05-15", "exec": "1", "file": "vagas_pm_2026-05-15.md", "novas": 0, "jobs": []}, {"date": "2026-05-15", "exec": "2", "file": "vagas_pm_2026-05-15_exec2.md", "novas": 0, "jobs": []}, {"date": "2026-05-16", "exec": "1", "file": "vagas_pm_2026-05-16.md", "novas": 0, "jobs": []}, {"date": "2026-05-17", "exec": "1", "file": "vagas_pm_2026-05-17.md", "novas": 0, "jobs": []}, {"date": "2026-05-20", "exec": "1", "file": "vagas_pm_2026-05-20.md", "novas": 0, "jobs": [{"company": "doola", "role": "Product Manager (Remote – Latin America)", "url": "https://jobs.lever.co/doola/741920c3-0493-4226-b37a-799cff27765f", "ats": "Lever", "date": "2026-05-20", "exec": "1", "file": "vagas_pm_2026-05-20.md", "is_latest": false}, {"company": "Jobgether", "role": "Senior Product Manager (Remote) – AI Data Platform", "url": "https://jobs.lever.co/jobgether/64ebff5f-f034-497e-bced-bafc16f595f2", "ats": "Lever", "date": "2026-05-20", "exec": "1", "file": "vagas_pm_2026-05-20.md", "is_latest": false}, {"company": "Jobgether", "role": "Product Manager – REMOTE", "url": "https://jobs.lever.co/jobgether/3906d41a-3ac3-4951-bbde-22edea1db563", "ats": "Lever", "date": "2026-05-20", "exec": "1", "file": "vagas_pm_2026-05-20.md", "is_latest": false}, {"company": "3Pillar Global", "role": "Product Manager (LATAM / Global)", "url": "https://jobs.lever.co/3pillarglobal/be1d7f21-b011-448a-a157-7a1409c1e666", "ats": "Lever", "date": "2026-05-20", "exec": "1", "file": "vagas_pm_2026-05-20.md", "is_latest": false}, {"company": "CompassX Group", "role": "Product Manager (Contrato 6 meses – Remote)", "url": "https://jobs.lever.co/compassx/9085db0d-5e48-4dd0-ad04-e1e8852e72c2", "ats": "Lever", "date": "2026-05-20", "exec": "1", "file": "vagas_pm_2026-05-20.md", "is_latest": false}, {"company": "Owner.com", "role": "Senior PM, Guest Lifecycle & Loyalty", "url": "https://jobs.ashbyhq.com/owner/e20c78e7-296c-448b-8ccf-d0fcccd4ebb6", "ats": "Ashby HQ", "date": "2026-05-20", "exec": "1", "file": "vagas_pm_2026-05-20.md", "is_latest": false}, {"company": "Owner.com", "role": "Senior PM, Product-Led Growth", "url": "https://jobs.ashbyhq.com/owner/0d82c556-d107-4973-805b-d37614f56788", "ats": "Ashby HQ", "date": "2026-05-20", "exec": "1", "file": "vagas_pm_2026-05-20.md", "is_latest": false}, {"company": "RoomPriceGenie", "role": "Group Product Manager – Integrations (Remote)", "url": "https://jobs.ashbyhq.com/roompricegenie/ca402ea5-5717-46ba-af69-e23b934fd552", "ats": "Ashby HQ", "date": "2026-05-20", "exec": "1", "file": "vagas_pm_2026-05-20.md", "is_latest": false}, {"company": "The Global Talent Co.", "role": "Senior Product Marketing Manager (Remote Global)", "url": "https://jobs.ashbyhq.com/the-global-talent-co/2723faef-9dd2-4e70-8e25-bdaf6a462ac1", "ats": "Ashby HQ", "date": "2026-05-20", "exec": "1", "file": "vagas_pm_2026-05-20.md", "is_latest": false}, {"company": "Douro Labs", "role": "Product Manager", "url": "https://jobs.ashbyhq.com/dourolabs.xyz/7058c001-bff0-4dc3-8237-ee71ebcec314", "ats": "Ashby HQ", "date": "2026-05-20", "exec": "1", "file": "vagas_pm_2026-05-20.md", "is_latest": false}, {"company": "Tremendous", "role": "Senior Product Manager (Remote – Global)", "url": "https://jobs.ashbyhq.com/Tremendous/db48b621-647f-410e-8aa9-6af43cdd1797", "ats": "Ashby HQ", "date": "2026-05-20", "exec": "1", "file": "vagas_pm_2026-05-20.md", "is_latest": false}, {"company": "SimSpace Corporation", "role": "Senior Product Manager (Remote)", "url": "https://jobs.ashbyhq.com/simspace-corporation/d731f40e-62b3-41d0-9e65-a5000a3e2676", "ats": "Ashby HQ", "date": "2026-05-20", "exec": "1", "file": "vagas_pm_2026-05-20.md", "is_latest": false}, {"company": "LucidLink", "role": "Senior Product Manager (Remote)", "url": "https://jobs.ashbyhq.com/lucidlink/00c6af1a-b50b-4941-9652-d8fdd92f2e2e", "ats": "Ashby HQ", "date": "2026-05-20", "exec": "1", "file": "vagas_pm_2026-05-20.md", "is_latest": false}, {"company": "Airwallex", "role": "Staff PM, Embedded Finance", "url": "https://jobs.ashbyhq.com/airwallex/c4794257-0db9-464a-8940-bdaf25fc253d", "ats": "Ashby HQ", "date": "2026-05-20", "exec": "1", "file": "vagas_pm_2026-05-20.md", "is_latest": false}, {"company": "EverAI", "role": "Senior AI Product Manager (Remote – Europe)", "url": "https://jobs.ashbyhq.com/everai/694c19b7-d94f-4f66-97a7-5c881b0811bf", "ats": "Ashby HQ", "date": "2026-05-20", "exec": "1", "file": "vagas_pm_2026-05-20.md", "is_latest": false}, {"company": "RevenueCat", "role": "Senior PM, Paywalls (Remote)", "url": "https://jobs.ashbyhq.com/revenuecat/a3794ad6-375e-4b82-adfd-d773959c5706", "ats": "Ashby HQ", "date": "2026-05-20", "exec": "1", "file": "vagas_pm_2026-05-20.md", "is_latest": false}, {"company": "RevenueCat", "role": "Senior PM, Funnels/Workflow (Remote)", "url": "https://jobs.ashbyhq.com/revenuecat/d28235be-172c-40fe-91ae-8453f218f413", "ats": "Ashby HQ", "date": "2026-05-20", "exec": "1", "file": "vagas_pm_2026-05-20.md", "is_latest": false}, {"company": "Remote.com", "role": "Product Manager, Benefits (LATAM / EMEA prioritário)", "url": "https://job-boards.greenhouse.io/remotecom/jobs/7509257003", "ats": "Greenhouse", "date": "2026-05-20", "exec": "1", "file": "vagas_pm_2026-05-20.md", "is_latest": false}, {"company": "Remote.com", "role": "Product Manager, Payments (EMEA / APAC prioritário)", "url": "https://job-boards.greenhouse.io/remotecom/jobs/6627449003", "ats": "Greenhouse", "date": "2026-05-20", "exec": "1", "file": "vagas_pm_2026-05-20.md", "is_latest": false}, {"company": "Remote.com", "role": "Product Manager (Global)", "url": "https://job-boards.greenhouse.io/remotecom/jobs/6909477003", "ats": "Greenhouse", "date": "2026-05-20", "exec": "1", "file": "vagas_pm_2026-05-20.md", "is_latest": false}, {"company": "Gong.io", "role": "Senior PM, International & Enterprise", "url": "https://job-boards.greenhouse.io/gongio/jobs/4625963006", "ats": "Greenhouse", "date": "2026-05-20", "exec": "1", "file": "vagas_pm_2026-05-20.md", "is_latest": false}, {"company": "mpathic", "role": "Product Manager, AI Analytics & Workflows", "url": "https://weworkremotely.com/remote-jobs/mpathic-product-manager-ai-analytics-workflows", "ats": "We Work Remotely", "date": "2026-05-20", "exec": "1", "file": "vagas_pm_2026-05-20.md", "is_latest": false}, {"company": "Method Grid", "role": "Product Manager (Anywhere)", "url": "https://weworkremotely.com/remote-jobs/method-grid-product-manager", "ats": "We Work Remotely", "date": "2026-05-20", "exec": "1", "file": "vagas_pm_2026-05-20.md", "is_latest": false}, {"company": "Plaid", "role": "Product Manager – Payments", "url": "https://weworkremotely.com/remote-jobs/plaid-product-manager-payments", "ats": "We Work Remotely", "date": "2026-05-20", "exec": "1", "file": "vagas_pm_2026-05-20.md", "is_latest": false}, {"company": "Userwise Services", "role": "Product Manager (Anywhere)", "url": "https://weworkremotely.com/remote-jobs/userwise-services-product-manager-1", "ats": "We Work Remotely", "date": "2026-05-20", "exec": "1", "file": "vagas_pm_2026-05-20.md", "is_latest": false}, {"company": "Dotmatics", "role": "Product Manager, GraphPad Prism", "url": "https://weworkremotely.com/remote-jobs/dotmatics-product-manager-graphpad-prism", "ats": "We Work Remotely", "date": "2026-05-20", "exec": "1", "file": "vagas_pm_2026-05-20.md", "is_latest": false}, {"company": "Jump", "role": "Enterprise Product Manager (Remote)", "url": "https://weworkremotely.com/remote-jobs/jump-enterprise-product-manager", "ats": "We Work Remotely", "date": "2026-05-20", "exec": "1", "file": "vagas_pm_2026-05-20.md", "is_latest": false}, {"company": "Intellum", "role": "Senior Product Manager (Anywhere)", "url": "https://weworkremotely.com/remote-jobs/intellum-senior-product-manager", "ats": "We Work Remotely", "date": "2026-05-20", "exec": "1", "file": "vagas_pm_2026-05-20.md", "is_latest": false}, {"company": "Awesome Motive", "role": "Product Manager (Global – incl. Brasil)", "url": "https://weworkremotely.com/remote-jobs/awesome-motive-product-manager", "ats": "We Work Remotely", "date": "2026-05-20", "exec": "1", "file": "vagas_pm_2026-05-20.md", "is_latest": false}, {"company": "Cial Dun & Bradstreet", "role": "Growth Product Manager (Anywhere)", "url": "https://weworkremotely.com/remote-jobs/cial-dun-bradstreet-growth-product-manager", "ats": "We Work Remotely", "date": "2026-05-20", "exec": "1", "file": "vagas_pm_2026-05-20.md", "is_latest": false}, {"company": "thoughtbot", "role": "Product Manager – Remote (EMEA)", "url": "https://apply.workable.com/thoughtbot/j/2A18EE41C3/", "ats": "Workable", "date": "2026-05-20", "exec": "1", "file": "vagas_pm_2026-05-20.md", "is_latest": false}, {"company": "Passion.io", "role": "Senior Mobile Apps PM (Global Remote)", "url": "https://apply.workable.com/passionio/j/ECD81FB71F/", "ats": "Workable", "date": "2026-05-20", "exec": "1", "file": "vagas_pm_2026-05-20.md", "is_latest": false}, {"company": "Tomorrow University", "role": "Senior Product Manager (Remote)", "url": "https://tomorrowuniversity.recruitee.com/o/remote-senior-product-manager-mfd", "ats": "Recruitee / BambooHR", "date": "2026-05-20", "exec": "1", "file": "vagas_pm_2026-05-20.md", "is_latest": false}, {"company": "Proto", "role": "Product Manager (Remote – Anywhere)", "url": "https://protoglobal.bamboohr.com/jobs/view.php?id=95", "ats": "Recruitee / BambooHR", "date": "2026-05-20", "exec": "1", "file": "vagas_pm_2026-05-20.md", "is_latest": false}, {"company": "Afriex", "role": "Product Manager (Remote)", "url": "https://afriex.bamboohr.com/jobs/view.php?id=24", "ats": "Recruitee / BambooHR", "date": "2026-05-20", "exec": "1", "file": "vagas_pm_2026-05-20.md", "is_latest": false}]}, {"date": "2026-05-22", "exec": "1", "file": "vagas_pm_2026-05-22.md", "novas": 0, "jobs": [{"company": "Sphere Laboratories", "role": "Product Manager – Brazil (Remote)", "url": "https://jobs.lever.co/sphere-laboratories/bf7d2430-a2d8-435b-a0cb-264e44c8bb61", "ats": "Lever", "date": "2026-05-22", "exec": "1", "file": "vagas_pm_2026-05-22.md", "is_latest": false}, {"company": "dLocal", "role": "Senior Product Manager – Brazil (Remote)", "url": "https://jobs.lever.co/dlocal/a63b7691-0362-4049-9270-e43a7a18c1c6", "ats": "Lever", "date": "2026-05-22", "exec": "1", "file": "vagas_pm_2026-05-22.md", "is_latest": false}, {"company": "Jeeves", "role": "Product Manager – Accounting (LATAM)", "url": "https://jobs.lever.co/tryjeeves/83ca9734-ed23-47d0-8a79-2f3b9779a96c", "ats": "Lever", "date": "2026-05-22", "exec": "1", "file": "vagas_pm_2026-05-22.md", "is_latest": false}, {"company": "Binance", "role": "Senior Payment Product Manager – LATAM", "url": "https://jobs.lever.co/binance/149ebd74-43d0-4a8a-88a5-5a21c0ffea42", "ats": "Lever", "date": "2026-05-22", "exec": "1", "file": "vagas_pm_2026-05-22.md", "is_latest": false}, {"company": "CI&T", "role": "Product Manager (AI Driven) – Brazil", "url": "https://jobs.lever.co/ciandt/d5b56563-1059-43c8-879f-cdf3bffac7e2/apply", "ats": "Lever", "date": "2026-05-22", "exec": "1", "file": "vagas_pm_2026-05-22.md", "is_latest": false}, {"company": "Bluelight Consulting", "role": "Product Manager – Remote, Latin America", "url": "https://jobs.lever.co/bluelightconsulting/cae16fc8-5441-4999-a480-7e5fbb814edd", "ats": "Lever", "date": "2026-05-22", "exec": "1", "file": "vagas_pm_2026-05-22.md", "is_latest": false}, {"company": "Yuno", "role": "Senior Product Manager SDK (Americas / EMEA Remote)", "url": "https://jobs.lever.co/yuno/52be3369-2156-48c3-b498-4c37d23e33e2", "ats": "Lever", "date": "2026-05-22", "exec": "1", "file": "vagas_pm_2026-05-22.md", "is_latest": false}, {"company": "Canary Technologies", "role": "Senior Product Manager (EMEA – Remote)", "url": "https://jobs.lever.co/canarytechnologies/bddbef67-30e1-4222-8c1b-8d088bfa4ee3", "ats": "Lever", "date": "2026-05-22", "exec": "1", "file": "vagas_pm_2026-05-22.md", "is_latest": false}, {"company": "Insider", "role": "Product Manager – B2B SaaS Martech (Remote)", "url": "https://jobs.lever.co/useinsider/3dcbb21d-42a9-4c20-9304-73039d8dfe9c", "ats": "Lever", "date": "2026-05-22", "exec": "1", "file": "vagas_pm_2026-05-22.md", "is_latest": false}, {"company": "Jobgether", "role": "Senior Product Manager – API (Remote from Argentina)", "url": "https://jobs.lever.co/jobgether/6e05d353-a9ba-4527-aa1c-6e1cb9fe52d7", "ats": "Lever", "date": "2026-05-22", "exec": "1", "file": "vagas_pm_2026-05-22.md", "is_latest": false}, {"company": "Jobgether", "role": "Senior Product Manager (Remote)", "url": "https://jobs.lever.co/jobgether/a1f9da05-2439-44be-a571-2a3b4108ebbb", "ats": "Lever", "date": "2026-05-22", "exec": "1", "file": "vagas_pm_2026-05-22.md", "is_latest": false}, {"company": "Hopper", "role": "Senior Product Manager – Enterprise / Commerce (100% Remote)", "url": "https://jobs.ashbyhq.com/hopper/35a9bc6c-5426-4986-b5bc-66a29055f26d", "ats": "Ashby HQ", "date": "2026-05-22", "exec": "1", "file": "vagas_pm_2026-05-22.md", "is_latest": false}, {"company": "LemFi", "role": "Senior Product Manager (Remote – Global South)", "url": "https://jobs.ashbyhq.com/lemfi/cf46d44e-aced-4336-95a8-ba0815bba93c", "ats": "Ashby HQ", "date": "2026-05-22", "exec": "1", "file": "vagas_pm_2026-05-22.md", "is_latest": false}, {"company": "Moovx", "role": "Product Owner (Remote)", "url": "https://jobs.ashbyhq.com/moovx/ed0738a4-9bb1-49de-867b-b19061fa5066", "ats": "Ashby HQ", "date": "2026-05-22", "exec": "1", "file": "vagas_pm_2026-05-22.md", "is_latest": false}, {"company": "Quora", "role": "Senior Product Manager – Core Experience (Remote)", "url": "https://jobs.ashbyhq.com/quora/fb238ccb-dbc4-417c-8fd1-96573d7499b9", "ats": "Ashby HQ", "date": "2026-05-22", "exec": "1", "file": "vagas_pm_2026-05-22.md", "is_latest": false}, {"company": "Orca", "role": "Product Manager (Remote)", "url": "https://jobs.ashbyhq.com/orca/c1e2ed21-fe0c-46da-811f-9c2f776c5163", "ats": "Ashby HQ", "date": "2026-05-22", "exec": "1", "file": "vagas_pm_2026-05-22.md", "is_latest": false}, {"company": "Colonist", "role": "Product Manager – Platform (Remote – Anywhere)", "url": "https://jobs.ashbyhq.com/colonist/aa22a805-1cbd-4309-b207-feaef9c89809", "ats": "Ashby HQ", "date": "2026-05-22", "exec": "1", "file": "vagas_pm_2026-05-22.md", "is_latest": false}, {"company": "Colonist", "role": "Product Manager – Game (Remote – Anywhere)", "url": "https://jobs.ashbyhq.com/colonist/7a3936e8-dc97-4324-8570-6de716c7d453", "ats": "Ashby HQ", "date": "2026-05-22", "exec": "1", "file": "vagas_pm_2026-05-22.md", "is_latest": false}, {"company": "SimSpace Corporation", "role": "Principal Product Manager (Remote)", "url": "https://jobs.ashbyhq.com/simspace-corporation/353a22f8-76ac-47bb-90b3-7634e9bb4b3c", "ats": "Ashby HQ", "date": "2026-05-22", "exec": "1", "file": "vagas_pm_2026-05-22.md", "is_latest": false}, {"company": "LucidLink", "role": "Senior Product Manager – Platform (Remote)", "url": "https://jobs.ashbyhq.com/lucidlink/7ce76341-933d-4f4a-8799-0d93e8fc0330", "ats": "Ashby HQ", "date": "2026-05-22", "exec": "1", "file": "vagas_pm_2026-05-22.md", "is_latest": false}, {"company": "Coinbase", "role": "Product Manager II – LATAM (Remote, Brazil)", "url": "https://boards.greenhouse.io/coinbase/jobs/6648177", "ats": "Greenhouse", "date": "2026-05-22", "exec": "1", "file": "vagas_pm_2026-05-22.md", "is_latest": false}, {"company": "LumiMeds", "role": "Senior / Lead Technical Product Manager (Remote – LATAM incl. Brasil e México)", "url": "https://job-boards.greenhouse.io/lumimeds/jobs/4227386009", "ats": "Greenhouse", "date": "2026-05-22", "exec": "1", "file": "vagas_pm_2026-05-22.md", "is_latest": false}, {"company": "Remote.com", "role": "Product Manager – Billing (Global, priori. LATAM / EMEA)", "url": "https://boards.greenhouse.io/remotecom/jobs/6064626003", "ats": "Greenhouse", "date": "2026-05-22", "exec": "1", "file": "vagas_pm_2026-05-22.md", "is_latest": false}, {"company": "Remote.com", "role": "Product Manager – Web Experience (Global, priori. LATAM / EMEA)", "url": "https://boards.greenhouse.io/remotecom/jobs/5898957003", "ats": "Greenhouse", "date": "2026-05-22", "exec": "1", "file": "vagas_pm_2026-05-22.md", "is_latest": false}, {"company": "Remote.com", "role": "Product Manager – Payroll (Global)", "url": "https://boards.greenhouse.io/remotecom/jobs/5731298003", "ats": "Greenhouse", "date": "2026-05-22", "exec": "1", "file": "vagas_pm_2026-05-22.md", "is_latest": false}, {"company": "Cloudbeds", "role": "Product Manager – Integrations LATAM", "url": "https://job-boards.greenhouse.io/cloudbeds/jobs/4643862005", "ats": "Greenhouse", "date": "2026-05-22", "exec": "1", "file": "vagas_pm_2026-05-22.md", "is_latest": false}, {"company": "Gladly", "role": "Senior Product Manager – Consumer LATAM (Remote)", "url": "https://boards.greenhouse.io/embed/job_app?for=sagansystems&token=7232866", "ats": "Greenhouse", "date": "2026-05-22", "exec": "1", "file": "vagas_pm_2026-05-22.md", "is_latest": false}, {"company": "MagicSchool AI", "role": "Product Manager – Enterprise (Remote)", "url": "https://weworkremotely.com/remote-jobs/magicschool-ai-product-manager-enterprise-prise", "ats": "We Work Remotely", "date": "2026-05-22", "exec": "1", "file": "vagas_pm_2026-05-22.md", "is_latest": false}, {"company": "Workwize", "role": "Product Manager – B2B SaaS (Remote)", "url": "https://weworkremotely.com/remote-jobs/workwize-product-manager-b2b-saas", "ats": "We Work Remotely", "date": "2026-05-22", "exec": "1", "file": "vagas_pm_2026-05-22.md", "is_latest": false}, {"company": "eDesk", "role": "Product Manager (Remote)", "url": "https://weworkremotely.com/remote-jobs/edesk-product-manager", "ats": "We Work Remotely", "date": "2026-05-22", "exec": "1", "file": "vagas_pm_2026-05-22.md", "is_latest": false}, {"company": "Tenth Revolution Group", "role": "Product Manager – Fully Remote", "url": "https://weworkremotely.com/remote-jobs/tenth-revolution-group-product-manager-fully-remote", "ats": "We Work Remotely", "date": "2026-05-22", "exec": "1", "file": "vagas_pm_2026-05-22.md", "is_latest": false}, {"company": "Instacart", "role": "Senior Product Manager – Marketing Experiences & Growth (Remote)", "url": "https://weworkremotely.com/remote-jobs/instacart-senior-product-manager-marketing-experiences-growth", "ats": "We Work Remotely", "date": "2026-05-22", "exec": "1", "file": "vagas_pm_2026-05-22.md", "is_latest": false}, {"company": "Degreed", "role": "Senior Product Manager (Remote)", "url": "https://weworkremotely.com/remote-jobs/degreed-senior-product-manager", "ats": "We Work Remotely", "date": "2026-05-22", "exec": "1", "file": "vagas_pm_2026-05-22.md", "is_latest": false}, {"company": "Payra", "role": "Product Lead – Data Products (Remote)", "url": "https://weworkremotely.com/remote-jobs/payra-product-lead-data-products", "ats": "We Work Remotely", "date": "2026-05-22", "exec": "1", "file": "vagas_pm_2026-05-22.md", "is_latest": false}, {"company": "Remote Talent LATAM", "role": "Product Manager / Lead – LATAM Only (Remote)", "url": "https://apply.workable.com/remote-talent-latam/j/CD1095C4BE", "ats": "Workable", "date": "2026-05-22", "exec": "1", "file": "vagas_pm_2026-05-22.md", "is_latest": false}, {"company": "Jobgether", "role": "Product Manager – Supplements (Remote from Latin America)", "url": "https://apply.workable.com/jobgether/j/7E5BDB0246/", "ats": "Workable", "date": "2026-05-22", "exec": "1", "file": "vagas_pm_2026-05-22.md", "is_latest": false}, {"company": "CloudLinux", "role": "Technical Product Manager (Worldwide Remote – Anywhere)", "url": "https://apply.workable.com/cloudlinux-1/j/F0871C6D23", "ats": "Workable", "date": "2026-05-22", "exec": "1", "file": "vagas_pm_2026-05-22.md", "is_latest": false}, {"company": "Jobgether", "role": "Senior Product Manager (Remote – Anywhere)", "url": "https://apply.workable.com/jobgether/j/16CB0B4D28", "ats": "Workable", "date": "2026-05-22", "exec": "1", "file": "vagas_pm_2026-05-22.md", "is_latest": false}]}, {"date": "2026-05-23", "exec": "1", "file": "vagas_pm_2026-05-23.md", "novas": 0, "jobs": [{"company": "dLocal", "role": "Senior Product Manager – Finance LATAM (Remote)", "url": "https://jobs.lever.co/dlocal/e82fd6d9-3b8e-484d-b1f5-ee21d096b896", "ats": "Lever", "date": "2026-05-23", "exec": "1", "file": "vagas_pm_2026-05-23.md", "is_latest": false}, {"company": "Airtm", "role": "Product Manager (AI & Blockchain) – LATAM", "url": "https://jobs.lever.co/airtm/44ebf59f-6f7e-4ed1-92dd-d3679b99c98e", "ats": "Lever", "date": "2026-05-23", "exec": "1", "file": "vagas_pm_2026-05-23.md", "is_latest": false}, {"company": "3Pillar Global", "role": "Product Manager (Remote – LATAM delivery centers)", "url": "https://jobs.lever.co/3pillarglobal/be1d7f21-b011-448a-a157-7a1409c1e666", "ats": "Lever", "date": "2026-05-23", "exec": "1", "file": "vagas_pm_2026-05-23.md", "is_latest": false}, {"company": "Apply Digital", "role": "Senior Product Manager (Remote)", "url": "https://jobs.lever.co/applydigital/48b1d20b-ce9d-47b2-9d86-9e3fbffb10f5", "ats": "Lever", "date": "2026-05-23", "exec": "1", "file": "vagas_pm_2026-05-23.md", "is_latest": false}, {"company": "Hopper", "role": "Principal Product Manager – Distribution (100% Remote)", "url": "https://jobs.ashbyhq.com/hopper/b86991dd-71a4-4188-9c0d-08205367e312", "ats": "Ashby HQ", "date": "2026-05-23", "exec": "1", "file": "vagas_pm_2026-05-23.md", "is_latest": false}, {"company": "Quora", "role": "Principal Product Manager – Growth, Poe (Remote)", "url": "https://jobs.ashbyhq.com/quora/b55763b6-0a98-479c-8199-9972fce6486c", "ats": "Ashby HQ", "date": "2026-05-23", "exec": "1", "file": "vagas_pm_2026-05-23.md", "is_latest": false}, {"company": "Quora", "role": "Senior Product Manager – Ads (Remote)", "url": "https://jobs.ashbyhq.com/quora/d6f83da3-6de0-48d2-b655-09ff1e59e813", "ats": "Ashby HQ", "date": "2026-05-23", "exec": "1", "file": "vagas_pm_2026-05-23.md", "is_latest": false}, {"company": "SimSpace Corporation", "role": "Senior Product Manager (Remote)", "url": "https://jobs.ashbyhq.com/simspace-corporation/d731f40e-62b3-41d0-9e65-a5000a3e2676", "ats": "Ashby HQ", "date": "2026-05-23", "exec": "1", "file": "vagas_pm_2026-05-23.md", "is_latest": false}, {"company": "Deel", "role": "Senior Product Manager (Global Remote)", "url": "https://jobs.ashbyhq.com/Deel/3729df77-5669-49f9-9614-33be8abd7549", "ats": "Ashby HQ", "date": "2026-05-23", "exec": "1", "file": "vagas_pm_2026-05-23.md", "is_latest": false}, {"company": "Invert", "role": "Product Manager (Remote – AI & Biology)", "url": "https://jobs.ashbyhq.com/invert/4642a4d3-afec-4df7-a89f-d8ec05aa1e84", "ats": "Ashby HQ", "date": "2026-05-23", "exec": "1", "file": "vagas_pm_2026-05-23.md", "is_latest": false}, {"company": "Airwallex", "role": "Senior Product Manager – Corporate Site (Global)", "url": "https://jobs.ashbyhq.com/airwallex/5488d78e-72fb-4c26-b743-af0fca4069c0", "ats": "Ashby HQ", "date": "2026-05-23", "exec": "1", "file": "vagas_pm_2026-05-23.md", "is_latest": false}, {"company": "Airwallex", "role": "Staff Product Manager – Embedded Finance (Global)", "url": "https://jobs.ashbyhq.com/airwallex/c4794257-0db9-464a-8940-bdaf25fc253d", "ats": "Ashby HQ", "date": "2026-05-23", "exec": "1", "file": "vagas_pm_2026-05-23.md", "is_latest": false}, {"company": "Airwallex", "role": "Senior Product Manager – AI Developer Experience (Global)", "url": "https://jobs.ashbyhq.com/airwallex/23b569cd-d5b5-48fa-b205-f75334be57d7", "ats": "Ashby HQ", "date": "2026-05-23", "exec": "1", "file": "vagas_pm_2026-05-23.md", "is_latest": false}, {"company": "SplitMetrics", "role": "Senior Product Manager – Core (Remote)", "url": "https://jobs.ashbyhq.com/splitmetrics/9517133e-b4f5-4056-9c70-091ef9451226", "ats": "Ashby HQ", "date": "2026-05-23", "exec": "1", "file": "vagas_pm_2026-05-23.md", "is_latest": false}, {"company": "RevenueCat", "role": "Senior Product Manager – Paywalls (Remote)", "url": "https://jobs.ashbyhq.com/revenuecat/a3794ad6-375e-4b82-adfd-d773959c5706", "ats": "Ashby HQ", "date": "2026-05-23", "exec": "1", "file": "vagas_pm_2026-05-23.md", "is_latest": false}, {"company": "Remote.com", "role": "Product Manager – Benefits (Global, priori. EMEA / AMER)", "url": "https://job-boards.greenhouse.io/remotecom/jobs/7509257003", "ats": "Greenhouse", "date": "2026-05-23", "exec": "1", "file": "vagas_pm_2026-05-23.md", "is_latest": false}, {"company": "Remote.com", "role": "Product Manager – Payments (Global, priori. EMEA / APAC)", "url": "https://job-boards.greenhouse.io/remotecom/jobs/6627449003", "ats": "Greenhouse", "date": "2026-05-23", "exec": "1", "file": "vagas_pm_2026-05-23.md", "is_latest": false}, {"company": "Remote.com", "role": "Senior Product Manager – Growth (Global)", "url": "https://job-boards.greenhouse.io/remotecom/jobs/6567499003", "ats": "Greenhouse", "date": "2026-05-23", "exec": "1", "file": "vagas_pm_2026-05-23.md", "is_latest": false}, {"company": "Remote.com", "role": "Product-Led Growth Manager (Global)", "url": "https://job-boards.greenhouse.io/remotecom/jobs/7703886003", "ats": "Greenhouse", "date": "2026-05-23", "exec": "1", "file": "vagas_pm_2026-05-23.md", "is_latest": false}, {"company": "Remote.com", "role": "Product Manager – Benefits Integrations (Global, priori. LATAM / EMEA)", "url": "https://boards.greenhouse.io/remotecom/jobs/5943916003", "ats": "Greenhouse", "date": "2026-05-23", "exec": "1", "file": "vagas_pm_2026-05-23.md", "is_latest": false}, {"company": "Sporty Group", "role": "Product Manager – Brazil (Remote)", "url": "https://job-boards.greenhouse.io/sportygroup/jobs/4748134101", "ats": "Greenhouse", "date": "2026-05-23", "exec": "1", "file": "vagas_pm_2026-05-23.md", "is_latest": false}, {"company": "Degreed", "role": "Product Manager – EMEA Remote", "url": "https://boards.greenhouse.io/degreed/jobs/4144849004", "ats": "Greenhouse", "date": "2026-05-23", "exec": "1", "file": "vagas_pm_2026-05-23.md", "is_latest": false}, {"company": "Workleap", "role": "Senior Product Manager – ShareGate Platform (Remote)", "url": "https://weworkremotely.com/remote-jobs/workleap-senior-product-manager-sharegate-platform", "ats": "We Work Remotely", "date": "2026-05-23", "exec": "1", "file": "vagas_pm_2026-05-23.md", "is_latest": false}, {"company": "Global HR Solutions", "role": "Group Product Manager (Remote – Brazil elegível)", "url": "https://weworkremotely.com/remote-jobs/global-hr-solutions-employment-tools-for-distributed-teams-group-product-manager", "ats": "We Work Remotely", "date": "2026-05-23", "exec": "1", "file": "vagas_pm_2026-05-23.md", "is_latest": false}, {"company": "thoughtbot", "role": "Product Manager – Remote (EMEA)", "url": "https://apply.workable.com/thoughtbot/j/2A18EE41C3/", "ats": "Workable", "date": "2026-05-23", "exec": "1", "file": "vagas_pm_2026-05-23.md", "is_latest": false}, {"company": "Simprints", "role": "Lead Product Manager – Remote (Global)", "url": "https://apply.workable.com/simprints/j/85F40D61DF", "ats": "Workable", "date": "2026-05-23", "exec": "1", "file": "vagas_pm_2026-05-23.md", "is_latest": false}, {"company": "Canva", "role": "Senior Product Manager – LATAM", "url": "https://jobs.smartrecruiters.com/Canva/6000000000445554-senior-product-manager-latam", "ats": "SmartRecruiters", "date": "2026-05-23", "exec": "1", "file": "vagas_pm_2026-05-23.md", "is_latest": false}, {"company": "Shopify", "role": "Product Manager – Shop Minis – Remote (EMEA)", "url": "https://jobs.smartrecruiters.com/Shopify/743999809992524-product-manager-shop-minis-remote-emea-", "ats": "SmartRecruiters", "date": "2026-05-23", "exec": "1", "file": "vagas_pm_2026-05-23.md", "is_latest": false}, {"company": "Remote World", "role": "Product Manager (Remote – Anywhere)", "url": "https://remoteworld.teamtailor.com/jobs/7629867-product-manager", "ats": "TeamTailor", "date": "2026-05-23", "exec": "1", "file": "vagas_pm_2026-05-23.md", "is_latest": false}]}, {"date": "2026-05-24", "exec": "1", "file": "vagas_pm_2026-05-24.md", "novas": 0, "jobs": [{"company": "Sphere Laboratories", "role": "Product Manager – Brazil (Fintech/Stablecoins, Remote)", "url": "https://jobs.lever.co/sphere-laboratories/bf7d2430-a2d8-435b-a0cb-264e44c8bb61", "ats": "Lever", "date": "2026-05-24", "exec": "1", "file": "vagas_pm_2026-05-24.md", "is_latest": true}, {"company": "Bluelight Consulting", "role": "Product Manager – Remote, Latin America", "url": "https://jobs.lever.co/bluelightconsulting/cae16fc8-5441-4999-a480-7e5fbb814edd", "ats": "Lever", "date": "2026-05-24", "exec": "1", "file": "vagas_pm_2026-05-24.md", "is_latest": true}, {"company": "Binance", "role": "Senior Payment Product Manager – LATAM", "url": "https://jobs.lever.co/binance/149ebd74-43d0-4a8a-88a5-5a21c0ffea42", "ats": "Lever", "date": "2026-05-24", "exec": "1", "file": "vagas_pm_2026-05-24.md", "is_latest": true}, {"company": "dLocal", "role": "Senior Product Manager – Brazil (Remote)", "url": "https://jobs.lever.co/dlocal/a63b7691-0362-4049-9270-e43a7a18c1c6", "ats": "Lever", "date": "2026-05-24", "exec": "1", "file": "vagas_pm_2026-05-24.md", "is_latest": true}, {"company": "dLocal", "role": "Product Manager – Compliance and KYC (Remote)", "url": "https://jobs.lever.co/dlocal/f3cd2b60-fd4a-4e45-add0-3c7d793f1821", "ats": "Lever", "date": "2026-05-24", "exec": "1", "file": "vagas_pm_2026-05-24.md", "is_latest": true}, {"company": "dLocal", "role": "Lead Product Manager – Core Services Finance (Remote)", "url": "https://jobs.lever.co/dlocal/cf31b043-a264-4fe9-a4d9-be0de4f75f46", "ats": "Lever", "date": "2026-05-24", "exec": "1", "file": "vagas_pm_2026-05-24.md", "is_latest": true}, {"company": "dLocal", "role": "Senior Product Manager – Finance Core (Remote)", "url": "https://jobs.lever.co/dlocal/04b0a24d-fe56-49c1-a79b-47603ce2e62c", "ats": "Lever", "date": "2026-05-24", "exec": "1", "file": "vagas_pm_2026-05-24.md", "is_latest": true}, {"company": "Jeeves", "role": "Product Manager – Accounting (Remote, Brazil/Mexico/Colombia)", "url": "https://jobs.lever.co/tryjeeves/83ca9734-ed23-47d0-8a79-2f3b9779a96c", "ats": "Lever", "date": "2026-05-24", "exec": "1", "file": "vagas_pm_2026-05-24.md", "is_latest": true}, {"company": "CI&T", "role": "Product Manager (AI Driven) – Brazil (Remote)", "url": "https://jobs.lever.co/ciandt/d5b56563-1059-43c8-879f-cdf3bffac7e2", "ats": "Lever", "date": "2026-05-24", "exec": "1", "file": "vagas_pm_2026-05-24.md", "is_latest": true}, {"company": "Hubstaff", "role": "Senior Product Manager – Partnerships (Remote, LATAM/Brazil pref.)", "url": "https://jobs.ashbyhq.com/hubstaff/8d1152e8-8a71-4b49-a9d4-44567f7f8481", "ats": "Ashby HQ", "date": "2026-05-24", "exec": "1", "file": "vagas_pm_2026-05-24.md", "is_latest": true}, {"company": "Hopper", "role": "Senior Product Manager – Enterprise/Commerce (100% Remote)", "url": "https://jobs.ashbyhq.com/hopper/35a9bc6c-5426-4986-b5bc-66a29055f26d", "ats": "Ashby HQ", "date": "2026-05-24", "exec": "1", "file": "vagas_pm_2026-05-24.md", "is_latest": true}, {"company": "Deel", "role": "Senior Product Manager – Payroll Expansion (EMEA/APAC, Remote)", "url": "https://jobs.ashbyhq.com/Deel/ce5e7787-4ad1-47ff-9fe5-111b77f71c94", "ats": "Ashby HQ", "date": "2026-05-24", "exec": "1", "file": "vagas_pm_2026-05-24.md", "is_latest": true}, {"company": "Quora", "role": "Senior Product Manager – Core Experience (Remote)", "url": "https://jobs.ashbyhq.com/quora/fb238ccb-dbc4-417c-8fd1-96573d7499b9", "ats": "Ashby HQ", "date": "2026-05-24", "exec": "1", "file": "vagas_pm_2026-05-24.md", "is_latest": true}, {"company": "RevenueCat", "role": "Senior Product Manager – Agents (Remote)", "url": "https://jobs.ashbyhq.com/RevenueCat/ec629bf1-20c1-44db-b852-a603a0154a04", "ats": "Ashby HQ", "date": "2026-05-24", "exec": "1", "file": "vagas_pm_2026-05-24.md", "is_latest": true}, {"company": "RevenueCat", "role": "Senior Product Manager – Analytics & Experiments (Remote)", "url": "https://jobs.ashbyhq.com/revenuecat/53a473db-c3ea-4848-9555-a6103a233658", "ats": "Ashby HQ", "date": "2026-05-24", "exec": "1", "file": "vagas_pm_2026-05-24.md", "is_latest": true}, {"company": "Orca", "role": "Product Manager (Remote)", "url": "https://jobs.ashbyhq.com/orca/c1e2ed21-fe0c-46da-811f-9c2f776c5163", "ats": "Ashby HQ", "date": "2026-05-24", "exec": "1", "file": "vagas_pm_2026-05-24.md", "is_latest": true}, {"company": "RoomPriceGenie", "role": "Group Product Manager – Integrations (Remote)", "url": "https://jobs.ashbyhq.com/roompricegenie/ca402ea5-5717-46ba-af69-e23b934fd552", "ats": "Ashby HQ", "date": "2026-05-24", "exec": "1", "file": "vagas_pm_2026-05-24.md", "is_latest": true}, {"company": "Rula", "role": "Sr. Growth Product Manager (Remote)", "url": "https://jobs.ashbyhq.com/rula/1f169277-0b02-44e0-8113-f4b37027f7c4", "ats": "Ashby HQ", "date": "2026-05-24", "exec": "1", "file": "vagas_pm_2026-05-24.md", "is_latest": true}, {"company": "Lightning Labs", "role": "Technical Product Manager – Bitcoin/Lightning (Remote)", "url": "https://jobs.ashbyhq.com/lightning/2d77b496-ab0d-4e54-bcf8-33260d1bab6b", "ats": "Ashby HQ", "date": "2026-05-24", "exec": "1", "file": "vagas_pm_2026-05-24.md", "is_latest": true}, {"company": "Coinbase", "role": "Product Manager II – LATAM (Remote, Brazil)", "url": "https://boards.greenhouse.io/coinbase/jobs/6648177", "ats": "Greenhouse", "date": "2026-05-24", "exec": "1", "file": "vagas_pm_2026-05-24.md", "is_latest": true}, {"company": "Clara", "role": "Senior Product Manager – LATAM (Remote)", "url": "https://job-boards.greenhouse.io/clara/jobs/4721896007", "ats": "Greenhouse", "date": "2026-05-24", "exec": "1", "file": "vagas_pm_2026-05-24.md", "is_latest": true}, {"company": "Cloudbeds", "role": "Product Manager – Integrations, LATAM (Remote)", "url": "https://job-boards.greenhouse.io/cloudbeds/jobs/4643862005", "ats": "Greenhouse", "date": "2026-05-24", "exec": "1", "file": "vagas_pm_2026-05-24.md", "is_latest": true}, {"company": "Axon", "role": "Senior Product Manager – Brazil (In-Market, Remote)", "url": "https://job-boards.greenhouse.io/axon/jobs/7618530003", "ats": "Greenhouse", "date": "2026-05-24", "exec": "1", "file": "vagas_pm_2026-05-24.md", "is_latest": true}, {"company": "BEES (AB InBev)", "role": "Product Manager – Professional Services (LATAM)", "url": "https://job-boards.greenhouse.io/bees/jobs/8512590002", "ats": "Greenhouse", "date": "2026-05-24", "exec": "1", "file": "vagas_pm_2026-05-24.md", "is_latest": true}, {"company": "PlayStation Global", "role": "Senior Product Manager – LATAM South (Brazil/Argentina)", "url": "https://boards.greenhouse.io/sonyinteractiveentertainmentglobal/jobs/4424740004", "ats": "Greenhouse", "date": "2026-05-24", "exec": "1", "file": "vagas_pm_2026-05-24.md", "is_latest": true}, {"company": "Remote.com", "role": "Product Manager – Payroll (Global, priori. LATAM)", "url": "https://boards.greenhouse.io/remotecom/jobs/5731298003", "ats": "Greenhouse", "date": "2026-05-24", "exec": "1", "file": "vagas_pm_2026-05-24.md", "is_latest": true}, {"company": "Remote.com", "role": "Product Manager – Web Experience (Global)", "url": "https://boards.greenhouse.io/remotecom/jobs/5898957003", "ats": "Greenhouse", "date": "2026-05-24", "exec": "1", "file": "vagas_pm_2026-05-24.md", "is_latest": true}, {"company": "Tenth Revolution Group", "role": "Product Manager – Fully Remote (Global)", "url": "https://weworkremotely.com/remote-jobs/tenth-revolution-group-product-manager-fully-remote", "ats": "We Work Remotely", "date": "2026-05-24", "exec": "1", "file": "vagas_pm_2026-05-24.md", "is_latest": true}, {"company": "Dotmatics", "role": "Product Manager – GraphPad Prism (Remote)", "url": "https://weworkremotely.com/remote-jobs/dotmatics-product-manager-graphpad-prism", "ats": "We Work Remotely", "date": "2026-05-24", "exec": "1", "file": "vagas_pm_2026-05-24.md", "is_latest": true}, {"company": "Workwize", "role": "Product Manager – B2B SaaS (Remote)", "url": "https://weworkremotely.com/remote-jobs/workwize-product-manager-b2b-saas", "ats": "We Work Remotely", "date": "2026-05-24", "exec": "1", "file": "vagas_pm_2026-05-24.md", "is_latest": true}, {"company": "Wallarm", "role": "Growth Product Manager (Remote)", "url": "https://weworkremotely.com/remote-jobs/wallarm-growth-product-manager", "ats": "We Work Remotely", "date": "2026-05-24", "exec": "1", "file": "vagas_pm_2026-05-24.md", "is_latest": true}, {"company": "Toptal", "role": "VP of Product – HireGlobal (Remote)", "url": "https://weworkremotely.com/remote-jobs/toptal-vp-of-product-hireglobal", "ats": "We Work Remotely", "date": "2026-05-24", "exec": "1", "file": "vagas_pm_2026-05-24.md", "is_latest": true}, {"company": "Remote Talent LATAM", "role": "Product Manager / Lead – Remote, LATAM Only", "url": "https://apply.workable.com/remote-talent-latam/j/CD1095C4BE", "ats": "Workable", "date": "2026-05-24", "exec": "1", "file": "vagas_pm_2026-05-24.md", "is_latest": true}, {"company": "CloudLinux", "role": "Technical Product Manager – Worldwide Remote (Work Anywhere)", "url": "https://apply.workable.com/cloudlinux-1/j/F0871C6D23", "ats": "Workable", "date": "2026-05-24", "exec": "1", "file": "vagas_pm_2026-05-24.md", "is_latest": true}, {"company": "Passion.io", "role": "Senior Mobile Apps Product Manager – Global Remote", "url": "https://apply.workable.com/passionio/j/ECD81FB71F", "ats": "Workable", "date": "2026-05-24", "exec": "1", "file": "vagas_pm_2026-05-24.md", "is_latest": true}, {"company": "Experian", "role": "Senior Product Manager – Analytics & Data Products (Remote)", "url": "https://jobs.smartrecruiters.com/Experian/744000112190232-senior-product-manager-analytics-data-products-remote-", "ats": "SmartRecruiters", "date": "2026-05-24", "exec": "1", "file": "vagas_pm_2026-05-24.md", "is_latest": true}, {"company": "Experian", "role": "Senior Product Manager – Global Analytics (Remote)", "url": "https://jobs.smartrecruiters.com/Experian/744000106865314-senior-product-manager-remote-", "ats": "SmartRecruiters", "date": "2026-05-24", "exec": "1", "file": "vagas_pm_2026-05-24.md", "is_latest": true}, {"company": "Revalize", "role": "Senior Product Manager (Remote, EMEA hours)", "url": "https://jobs.smartrecruiters.com/Revalize/744000110132977-senior-product-manager", "ats": "SmartRecruiters", "date": "2026-05-24", "exec": "1", "file": "vagas_pm_2026-05-24.md", "is_latest": true}, {"company": "Shopify", "role": "Senior Product Manager – Rates (Remote, EMEA)", "url": "https://jobs.smartrecruiters.com/shopify/743999802463676-senior-product-manager-rates-remote-emea-", "ats": "SmartRecruiters", "date": "2026-05-24", "exec": "1", "file": "vagas_pm_2026-05-24.md", "is_latest": true}, {"company": "BARBRI", "role": "Product Lead – Remote (Global)", "url": "https://barbri.teamtailor.com/jobs/7514770-product-lead-remote", "ats": "TeamTailor", "date": "2026-05-24", "exec": "1", "file": "vagas_pm_2026-05-24.md", "is_latest": true}], "is_latest": true}];
 
-// Populate selects
+// ── Populate selects ──
 const years  = [...new Set(ALL_JOBS.map(j=>j.date.slice(0,4)))].sort().reverse();
-const atsList = [...new Set(ALL_JOBS.map(j=>j.ats))].sort();
-const selYear = document.getElementById('sel-year');
-const selAts  = document.getElementById('sel-ats');
-years.forEach(y  => selYear.innerHTML += `<option>${y}</option>`);
-atsList.forEach(a => selAts.innerHTML  += `<option>${a}</option>`);
+const months = [...new Set(ALL_JOBS.map(j=>{const d=new Date(j.date+'T12:00:00');return d.toLocaleString('en',{month:'long'})+' '+j.date.slice(0,4)}))].sort((a,b)=>new Date('01 '+b)-new Date('01 '+a));
+const atsList= [...new Set(ALL_JOBS.map(j=>j.ats))].sort();
 
-function getFilters() {
-  return {
-    q:       document.getElementById('search').value.toLowerCase(),
-    year:    selYear.value,
-    ats:     selAts.value,
-    onlyNew: document.getElementById('only-new').checked,
-  };
-}
+const selYear  = document.getElementById('sel-year');
+const selMonth = document.getElementById('sel-month');
+const selAts   = document.getElementById('sel-ats');
 
-function matchJob(j, f) {
-  if (f.onlyNew && !j.is_latest) return false;
-  if (f.year && !j.date.startsWith(f.year)) return false;
-  if (f.ats  && j.ats !== f.ats) return false;
-  if (f.q) {
-    const hay = (j.company+' '+j.role+' '+j.ats).toLowerCase();
-    if (!hay.includes(f.q)) return false;
-  }
-  return true;
-}
+years.forEach(y => selYear.innerHTML  += `<option>${y}</option>`);
+months.forEach(m=> selMonth.innerHTML += `<option>${m}</option>`);
+atsList.forEach(a=> selAts.innerHTML  += `<option>${a}</option>`);
 
-function weekOf(dateStr) {
+// ── Week helpers ──
+function weekStart(dateStr) {
   const d = new Date(dateStr + 'T12:00:00');
-  const day = d.getDay(); // 0=Sun
-  const diff = d.getDate() - day + (day === 0 ? -6 : 1);
-  const mon = new Date(d.setDate(diff));
-  return mon.toISOString().slice(0,10);
+  const day = d.getDay() || 7;
+  d.setDate(d.getDate() - (day - 1));
+  return d.toISOString().slice(0,10);
 }
 
-function fmt(dateStr) {
-  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-  const [y,m,d] = dateStr.split('-');
-  return `${parseInt(d)} ${months[parseInt(m)-1]} ${y}`;
+const today   = new Date().toISOString().slice(0,10);
+const thisWeekStart = weekStart(today);
+const lwDate  = new Date(thisWeekStart + 'T12:00:00');
+lwDate.setDate(lwDate.getDate() - 7);
+const lastWeekStart = lwDate.toISOString().slice(0,10);
+
+function weekBucket(dateStr) {
+  const ws = weekStart(dateStr);
+  if (ws === thisWeekStart) return 'this_week';
+  if (ws === lastWeekStart) return 'last_week';
+  return 'earlier';
 }
 
-function filter() {
-  const f   = getFilters();
-  const vis = ALL_JOBS.filter(j => matchJob(j, f));
+function fmtDate(s) {
+  const mo = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const [y,m,d] = s.split('-');
+  return `${parseInt(d)} ${mo[parseInt(m)-1]} ${y}`;
+}
+function fmtWeekRange(startStr) {
+  const s = new Date(startStr+'T12:00:00');
+  const e = new Date(startStr+'T12:00:00');
+  e.setDate(e.getDate()+6);
+  const mo = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  return `${s.getDate()} ${mo[s.getMonth()]} – ${e.getDate()} ${mo[e.getMonth()]}`;
+}
+
+// ── Filter ──
+let activeWeek = null;
+
+function applyFilter() {
+  const q       = document.getElementById('search').value.toLowerCase();
+  const year    = selYear.value;
+  const month   = selMonth.value;
+  const ats     = selAts.value;
+  const onlyNew = document.getElementById('only-new').checked;
+
+  const vis = ALL_JOBS.filter(j => {
+    if (onlyNew && !j.is_latest) return false;
+    if (year  && !j.date.startsWith(year))  return false;
+    if (ats   && j.ats !== ats)             return false;
+    if (month) {
+      const d = new Date(j.date+'T12:00:00');
+      const jm = d.toLocaleString('en',{month:'long'})+' '+j.date.slice(0,4);
+      if (jm !== month) return false;
+    }
+    if (activeWeek && weekBucket(j.date) !== activeWeek) return false;
+    if (q) {
+      if (!(j.company+' '+j.role+' '+j.ats).toLowerCase().includes(q)) return false;
+    }
+    return true;
+  });
+
   document.getElementById('vis-count').textContent = vis.length;
   document.getElementById('count-lbl').textContent  = vis.length + ' vagas';
 
-  // Group visible jobs by run file
+  // Map file → visible jobs
   const runMap = {};
   vis.forEach(j => {
     if (!runMap[j.file]) runMap[j.file] = [];
     runMap[j.file].push(j);
   });
 
-  // Group runs by year → month
-  const byYear = {};
+  // Bucket runs
+  const buckets = { this_week: [], last_week: [], earlier: [] };
   RUNS.forEach(run => {
     const jobs = runMap[run.file];
     if (!jobs || jobs.length === 0) return;
-    const y = run.date.slice(0,4);
-    const dt = new Date(run.date + 'T12:00:00');
-    const monthKey = dt.toLocaleString('en',{month:'long'}) + ' ' + y;
-    if (!byYear[y]) byYear[y] = {};
-    if (!byYear[y][monthKey]) byYear[y][monthKey] = [];
-    byYear[y][monthKey].push({...run, visJobs: jobs});
+    const b = (activeWeek && activeWeek !== 'all') ? activeWeek : weekBucket(run.date);
+    const bucket = buckets[b] || buckets.earlier;
+    bucket.push({...run, visJobs: jobs});
   });
 
-  const main = document.getElementById('main-content');
-  if (Object.keys(byYear).length === 0) {
-    main.innerHTML = '<div class="no-results">Nenhuma vaga encontrada para os filtros selecionados.</div>';
-    return;
-  }
+  // ── Render week nav ──
+  const tweekCount = ALL_JOBS.filter(j=>weekBucket(j.date)==='this_week').length;
+  const lweekCount = ALL_JOBS.filter(j=>weekBucket(j.date)==='last_week').length;
+  const olderCount = ALL_JOBS.filter(j=>weekBucket(j.date)==='earlier').length;
+
+  const nav = document.getElementById('week-nav');
+  nav.innerHTML = `
+    <button class="week-pill tw ${activeWeek==='this_week'?'active':''}" onclick="setWeek('this_week')">
+      🟠 Esta semana <span style="opacity:.8;font-size:.7rem">(${tweekCount})</span>
+    </button>
+    <button class="week-pill lw ${activeWeek==='last_week'?'active':''}" onclick="setWeek('last_week')">
+      ◑ Semana passada <span style="opacity:.8;font-size:.7rem">(${lweekCount})</span>
+    </button>
+    <button class="week-pill old ${activeWeek==='earlier'?'active':''}" onclick="setWeek('earlier')">
+      📅 Anteriores <span style="opacity:.8;font-size:.7rem">(${olderCount})</span>
+    </button>
+    ${activeWeek ? '<button class="week-pill old" onclick="setWeek(null)" style="background:#fff">✕ Ver tudo</button>' : ''}
+  `;
+
+  // ── Render content ──
+  const bucketLabels = {
+    this_week: { title: '🟠 Esta Semana', sub: fmtWeekRange(thisWeekStart) },
+    last_week: { title: '◑ Semana Passada', sub: fmtWeekRange(lastWeekStart) },
+    earlier:   { title: '📅 Execuções Anteriores', sub: '' },
+  };
+
+  const orderedBuckets = activeWeek ? [activeWeek] : ['this_week','last_week','earlier'];
 
   let html = '';
-  Object.keys(byYear).sort().reverse().forEach(year => {
-    html += `<div class="year-block"><div class="year-label">📅 ${year}</div>`;
-    const months = byYear[year];
-    Object.keys(months).sort((a,b) => new Date('01 '+b) - new Date('01 '+a)).forEach(month => {
-      html += `<div class="month-block"><div class="month-label">${month}</div>`;
-      months[month].sort((a,b) => b.date.localeCompare(a.date)).forEach(run => {
-        const runId = run.file.replace(/\./g,'_');
-        const isNew = run.is_latest;
-        const jobRows = run.visJobs.map(j => `
-          <tr>
-            <td><div class="company">${j.company}</div></td>
-            <td><div class="role">${j.role}</div></td>
-            <td><span class="ats-tag">${j.ats}</span></td>
-            <td><a class="apply" href="${j.url}" target="_blank" rel="noopener">Ver vaga ↗</a></td>
-          </tr>`).join('');
-        html += `
-        <div class="run-card" id="card-${runId}">
-          <div class="run-header" onclick="toggle('${runId}')">
-            <div>
-              <span class="run-date">${fmt(run.date)}</span>
-              <span class="run-meta"> · execução ${run.exec}</span>
-            </div>
-            <div class="run-badges">
-              ${isNew ? '<span class="badge badge-new">✨ mais recente</span>' : ''}
-              <span class="badge badge-count">${run.visJobs.length} vagas</span>
-              <span class="chevron">▼</span>
-            </div>
-          </div>
-          <div class="jobs-table">
-            <table>
-              <thead><tr><th>Empresa</th><th>Cargo</th><th>Plataforma</th><th>Link</th></tr></thead>
-              <tbody>${jobRows}</tbody>
-            </table>
-          </div>
+  orderedBuckets.forEach(bkey => {
+    const bRuns = buckets[bkey];
+    if (!bRuns || bRuns.length === 0) return;
+    bRuns.sort((a,b) => b.date.localeCompare(a.date));
+    const info = bucketLabels[bkey];
+
+    // Group by month for "earlier"
+    if (bkey === 'earlier') {
+      html += `<div class="week-section">
+        <div class="week-header">
+          <span class="week-title">${info.title}</span>
         </div>`;
+      const byMonth = {};
+      bRuns.forEach(r => {
+        const d = new Date(r.date+'T12:00:00');
+        const mk = d.toLocaleString('en',{month:'long'})+' '+r.date.slice(0,4);
+        if (!byMonth[mk]) byMonth[mk]=[];
+        byMonth[mk].push(r);
+      });
+      Object.keys(byMonth).sort((a,b)=>new Date('01 '+b)-new Date('01 '+a)).forEach(mk => {
+        html += `<div class="month-group"><div class="month-label">${mk}</div>`;
+        byMonth[mk].forEach(run => { html += renderCard(run); });
+        html += '</div>';
       });
       html += '</div>';
-    });
-    html += '</div>';
-  });
-  main.innerHTML = html;
-
-  // Auto-open latest run
-  if (f.onlyNew || (!f.q && !f.year && !f.ats)) {
-    const latestRun = RUNS.filter(r=>r.is_latest)[0];
-    if (latestRun) {
-      const id = latestRun.file.replace(/\./g,'_');
-      const card = document.getElementById('card-'+id);
-      if (card) card.classList.add('open');
+    } else {
+      html += `<div class="week-section">
+        <div class="week-header">
+          <span class="week-title">${info.title}</span>
+          ${info.sub ? `<span class="week-sub">${info.sub}</span>` : ''}
+        </div>`;
+      bRuns.forEach(run => { html += renderCard(run); });
+      html += '</div>';
     }
+  });
+
+  if (!html) html = '<div class="empty">Nenhuma vaga encontrada para os filtros selecionados.</div>';
+  document.getElementById('content').innerHTML = html;
+
+  // Auto-open latest
+  const latest = RUNS.filter(r=>r.is_latest)[0];
+  if (latest && runMap[latest.file]) {
+    const card = document.getElementById('card-'+latest.file.replace(/\./g,'_'));
+    if (card) card.classList.add('open');
   }
+}
+
+function renderCard(run) {
+  const id = run.file.replace(/\./g,'_');
+  const rows = run.visJobs.map(j => `
+    <tr>
+      <td><div class="co">${j.company}</div></td>
+      <td><div class="role-text">${j.role}</div></td>
+      <td><span class="ats-tag">${j.ats}</span></td>
+      <td><a class="apply-btn" href="${j.url}" target="_blank" rel="noopener">Ver vaga ↗</a></td>
+    </tr>`).join('');
+  const latestBadge = run.is_latest ? '<span class="badge badge-latest">✨ mais recente</span>' : '';
+  return `
+  <div class="run-card" id="card-${id}">
+    <div class="run-header" onclick="toggle('${id}')">
+      <div>
+        <span class="run-date">${fmtDate(run.date)}</span>
+        <span class="run-exec">· exec ${run.exec}</span>
+      </div>
+      <div class="run-badges">
+        ${latestBadge}
+        <span class="badge badge-count">${run.visJobs.length} vagas</span>
+        <span class="chevron">▼</span>
+      </div>
+    </div>
+    <div class="jobs-panel">
+      <table>
+        <thead><tr><th>Empresa</th><th>Cargo</th><th>Plataforma</th><th>Link</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>
+  </div>`;
+}
+
+function setWeek(w) {
+  activeWeek = w;
+  applyFilter();
 }
 
 function toggle(id) {
@@ -234,7 +619,7 @@ function toggle(id) {
 }
 
 // Init
-filter();
+applyFilter();
 </script>
 </body>
 </html>
