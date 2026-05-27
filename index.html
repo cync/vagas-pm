@@ -158,6 +158,42 @@ header {
   color: var(--arc-org);
 }
 
+
+/* ══ SOURCES STRIP ═══════════════════════════════════ */
+.sources-strip {
+  background: var(--ink);
+  border-top: 1px solid rgba(255,255,255,0.08);
+  padding: 10px 48px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.sources-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.56px;
+  text-transform: uppercase;
+  color: var(--arc-org);
+  white-space: nowrap;
+}
+.src-pill {
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.24px;
+  color: rgba(255,255,255,0.55);
+  text-decoration: none;
+  padding: 3px 12px;
+  border-radius: var(--r-pill);
+  border: 1px solid rgba(255,255,255,0.12);
+  white-space: nowrap;
+  transition: color .15s, border-color .15s;
+}
+.src-pill:hover {
+  color: var(--arc-org);
+  border-color: var(--arc-org);
+}
+
 /* ══ CONTROLES (nav pill sticky) ══════════════════════ */
 .controls {
   background: var(--white);
@@ -577,6 +613,12 @@ footer {
   </div>
 </header>
 
+<!-- ══ SOURCES STRIP ══════════════════════════════════ -->
+<div class="sources-strip">
+  <span class="sources-label">✦ 12 fontes</span>
+  <a class="src-pill" href="https://jobs.lever.co" target="_blank" rel="noopener">Lever</a><a class="src-pill" href="https://jobs.ashbyhq.com" target="_blank" rel="noopener">Ashby HQ</a><a class="src-pill" href="https://greenhouse.io" target="_blank" rel="noopener">Greenhouse</a><a class="src-pill" href="https://smartrecruiters.com" target="_blank" rel="noopener">SmartRecruiters</a><a class="src-pill" href="https://workable.com" target="_blank" rel="noopener">Workable</a><a class="src-pill" href="https://teamtailor.com" target="_blank" rel="noopener">TeamTailor</a><a class="src-pill" href="https://weworkremotely.com" target="_blank" rel="noopener">We Work Remotely</a><a class="src-pill" href="https://himalayas.app" target="_blank" rel="noopener">Himalayas</a><a class="src-pill" href="https://remotive.com" target="_blank" rel="noopener">Remotive</a><a class="src-pill" href="https://arc.dev" target="_blank" rel="noopener">Arc.dev</a><a class="src-pill" href="https://dailyremote.com" target="_blank" rel="noopener">Daily Remote</a><a class="src-pill" href="https://dynamitejobs.com" target="_blank" rel="noopener">Dynamite Jobs</a>
+</div>
+
 <!-- ══ CONTROLS ════════════════════════════════════════ -->
 <div class="controls">
   <div class="search-wrap">
@@ -614,6 +656,9 @@ footer {
       <a href="https://jobs.ashbyhq.com" target="_blank">Ashby HQ</a>
       <a href="https://greenhouse.io" target="_blank">Greenhouse</a>
       <a href="https://weworkremotely.com" target="_blank">We Work Remotely</a>
+      <a href="https://himalayas.app" target="_blank">Himalayas</a>
+      <a href="https://remotive.com" target="_blank">Remotive</a>
+      <a href="https://arc.dev" target="_blank">Arc.dev</a>
     </div>
     <div class="footer-col">
       <div class="footer-col-header">• Contato</div>
@@ -623,7 +668,7 @@ footer {
   </div>
   <div class="footer-divider"></div>
   <div class="footer-bottom">
-    <span>© 2026 Felipe Saraiva · Atualizado em 26 May 2026 · 18:46</span>
+    <span>© 2026 Felipe Saraiva · Atualizado em 27 May 2026 · 02:26</span>
     <span class="updated-badge">✦ 136 vagas · 18 execuções</span>
   </div>
 </footer>
