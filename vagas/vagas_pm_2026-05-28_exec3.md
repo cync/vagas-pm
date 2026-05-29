@@ -1,4 +1,4 @@
-# 🆕 Vagas PM Internacionais – 29 de maio de 2026
+# 🆕 Vagas PM Internacionais – 28 de maio de 2026
 
 > **Execução automática** | Busca em ATS internacionais (Lever, Ashby, Greenhouse, SmartRecruiters, WWR, Remotive)
 > **Histórico:** 15 vagas anteriores ignoradas | **Novas encontradas:** 3
@@ -29,7 +29,7 @@
 
 ## 📊 Resumo desta execução
 
-- **Data:** 2026-05-29
+- **Data:** 2026-05-28
 - **Vagas no histórico (anteriores):** 15
 - **Novas vagas encontradas:** 3
 - **Total acumulado:** 18

@@ -18,7 +18,8 @@ def parse_md_file(filepath):
     if not m:
         return None
     date_str = m.group(1)
-    exec_n   = "2" if "_exec2" in filepath.name else "1"
+    exec_m = re.search(r'_exec(\d+)', filepath.name)
+    exec_n = exec_m.group(1) if exec_m else "1"
     novas_m  = re.search(r'Novas encontradas[^\d]*(\d+)', text)
     novas    = int(novas_m.group(1)) if novas_m else 0
     jobs, current_ats = [], "Outros"
