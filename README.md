@@ -1,104 +1,117 @@
-# 🧭 Vagas PM Internacional
+# Vagas PM Internacional
 
-🌐 **[Acesse o site →](https://cync.github.io/vagas-pm/)**
+🌐 **Acesse o site:** [https://cync.github.io/vagas-pm/](https://cync.github.io/vagas-pm/)
 
-> Tracker diário de vagas **remote-first para Product Manager** abertas a candidatos do Brasil e LATAM — buscadas diretamente nos ATS das empresas, sem intermediários.
-
----
-
-## Por que este projeto existe
-
-A maioria dos job boards agrega vagas com atraso, duplica anúncios e mistura posições que não aceitam candidatos fora dos EUA. Este tracker faz buscas diárias direto nos sistemas de recrutamento (Lever, Ashby, Greenhouse etc.), filtra por critérios de elegibilidade (remote, LATAM, Brazil, global) e remove URLs já vistas em execuções anteriores — entregando apenas o que é genuinamente novo.
+Tracker de vagas internacionais para **Product Manager** — atualizado automaticamente 2× ao dia via GitHub Actions, sem depender do computador local.
 
 ---
 
-## O site
+## O que é
 
-- **Organizado por data** → cada execução diária é uma seção própria
-- **Filtros por ATS** → Lever, Ashby, Greenhouse, SmartRecruiters, WWR...
-- **Busca por texto** → filtre por empresa, cargo ou palavra-chave
-- **Deduplicação automática** → vagas já exibidas anteriormente não reaparecem
-- **Verificação de links** → URLs quebradas ou expiradas são removidas antes de publicar
+Um agregador de vagas remote-first para PMs que aceita candidatos do Brasil / LATAM, com foco em empresas internacionais. As vagas são buscadas diretamente nos principais ATS globais (sem depender de job boards agregadores).
+
+O site exibe todas as execuções históricas, organizadas por data, com filtros por plataforma ATS e busca por empresa ou cargo.
 
 ---
 
 ## Fontes monitoradas
 
-| Plataforma ATS | Por que monitorar |
+| ATS / Plataforma | Exemplos de empresas |
 |---|---|
-| **Lever** | Usado por startups de série B/C, fintechs, empresas LATAM-first |
-| **Ashby HQ** | Favorito de empresas remote-first modernas (PLG, AI, SaaS) |
-| **Greenhouse** | Usado por scale-ups e empresas públicas (Coinbase, Remote.com) |
-| **SmartRecruiters** | Empresas globais de médio/grande porte (Wise, Canva) |
-| **We Work Remotely** | Board curado de vagas 100% remotas, "anywhere" |
-| **Remotive / Himalayas** | Agregadores com foco em LATAM e remote global |
-| **Workable / Bamboo** | PMEs tech com abertura a contratação internacional |
+| Lever | dLocal, Binance, Bluelight, 3Pillar |
+| Ashby HQ | Hubstaff, Owner.com, Quora, Hopper |
+| Greenhouse | Coinbase, Remote.com, Cloudbeds, QuintoAndar |
+| SmartRecruiters | Wise, Canva |
+| We Work Remotely | Vagas abertas globalmente |
+| Remotive / Himalayas | Vagas LATAM-friendly |
 
 ---
 
-## Critérios de busca
+## Como funciona — pipeline GitHub Actions
 
-As vagas são filtradas por combinação de termos. Só entram no tracker se atenderem **todos** os critérios:
-
-- **Cargo:** `product manager` (Senior, Staff, Principal, Group, Head)
-- **Localização:** `Brazil`, `Brasil`, `LATAM`, `South America`, `EMEA`, `global`, `international`
-- **Modalidade:** `remote`, `home office`, `anywhere`, `work from home`
-- **Excluídos:** `site:remoterocketship.com` e outros agregadores secundários
-
----
-
-## Como funciona (fluxo automático)
+O pipeline roda automaticamente na nuvem, sem precisar do computador ligado:
 
 ```
-┌─────────────────────────────────────────────────────┐
-│  Tarefa agendada: VagasPM (diária, via Cowork)       │
-│                                                      │
-│  1. Lê histórico de URLs já encontradas              │
-│  2. Busca vagas nos ATS com query estruturada        │
-│  3. Filtra apenas URLs novas                         │
-│  4. Verifica se os links ainda estão ativos          │
-│  5. Salva vagas_pm_YYYY-MM-DD.md                    │
-│  6. Roda generate_site.py → atualiza index.html      │
-└─────────────────────────────────────────────────────┘
-            ↓
-┌─────────────────────────────────────────────────────┐
-│  Tarefa agendada: VagasPM-GitPush (logo depois)      │
-│                                                      │
-│  git add index.html README.md                        │
-│  git commit -m "update: vagas PM — <data>"           │
-│  git push → GitHub Pages atualizado                  │
-└─────────────────────────────────────────────────────┘
+GitHub Actions (cron 06:00 e 15:00 BRT)
+       ↓
+search_and_generate.py
+       ↓
+Tavily API — busca nos ATS (Lever, Ashby, Greenhouse, SmartRecruiters, WWR, Remotive)
+       ↓
+Extração de vagas (Claude Haiku API, ou regex como fallback gratuito)
+       ↓
+Filtra URLs já vistas em vagas/url_history.json
+       ↓
+Salva vagas/vagas_pm_YYYY-MM-DD.md  (horário BRT)
+       ↓
+generate_site.py → gera index.html atualizado
+       ↓
+git commit + push → GitHub Pages atualizado
 ```
+
+### Agendamento
+
+| Horário BRT | Horário UTC | Dias |
+|---|---|---|
+| 06:00 | 09:00 | Segunda a sexta |
+| 15:00 | 18:00 | Segunda a sexta |
+
+Para rodar fora do agendamento: **Actions → "Vagas PM – Busca automática" → Run workflow**
 
 ---
 
 ## Estrutura do repositório
 
 ```
-vagas-pm/                        ← este repositório (GitHub Pages)
-├── index.html                   ← site completo (gerado automaticamente)
-├── generate_site.py             ← script Python que lê os .md e gera o HTML
-├── broken_links.json            ← cache de URLs inválidas já detectadas
-├── push_update.bat              ← script de push manual (Windows)
-└── README.md                    ← este arquivo
-
-VagasInternacionais/             ← pasta local (não versionada)
-├── vagas_pm_2026-05-27.md
-├── vagas_pm_2026-05-26.md
-├── vagas_pm_2026-05-26_exec2.md
-└── ...
+vagas-pm/
+├── .github/
+│   └── workflows/
+│       └── vagas-pm.yml        ← workflow GitHub Actions (cron 2×/dia)
+├── vagas/
+│   ├── vagas_pm_YYYY-MM-DD.md  ← arquivos diários de vagas
+│   └── url_history.json        ← histórico de URLs para deduplicação
+├── index.html                  ← site gerado (GitHub Pages)
+├── generate_site.py            ← lê os .md e gera o HTML
+├── search_and_generate.py      ← pipeline principal (busca + extração + geração)
+├── requirements.txt            ← dependências Python (tavily-python, anthropic)
+├── broken_links.json           ← URLs inválidas detectadas
+└── README.md                   ← este arquivo
 ```
 
 ---
 
-## Execução manual
+## Configuração (primeira vez)
+
+### 1. Secrets necessários
+
+Acesse **Settings → Secrets → Actions** no repositório e adicione:
+
+| Secret | Onde obter | Custo |
+|---|---|---|
+| `TAVILY_API_KEY` | [tavily.com](https://tavily.com) | Gratuito (1.000 buscas/mês) |
+| `ANTHROPIC_API_KEY` | [console.anthropic.com](https://console.anthropic.com) | Opcional — ~US$0,01/execução com Haiku |
+
+> **Sem `ANTHROPIC_API_KEY`**: o script usa extração por regex automaticamente, sem custo.
+
+### 2. GitHub Pages
+
+Em **Settings → Pages**, confirme que a fonte é o branch `main`, pasta raiz `/`.
+
+---
+
+## Execução local (manual)
 
 ```powershell
-# Na pasta site/, regenerar o HTML a partir dos arquivos .md locais:
-python generate_site.py
+# Na pasta raiz do repositório clonado:
 
-# Commitar e publicar no GitHub Pages:
-git add index.html README.md
+# Instalar dependências
+pip install -r requirements.txt
+
+# Buscar vagas e regenerar site
+python search_and_generate.py
+
+# Publicar manualmente
+git add vagas/ index.html
 git commit -m "update manual"
 git push
 ```
@@ -107,28 +120,17 @@ git push
 
 ## Stack
 
-- **Busca:** Google Search (operadores `site:` + filtros de texto)
-- **Geração do site:** Python + `generate_site.py` (HTML puro, zero dependências)
-- **Hospedagem:** GitHub Pages (branch `main`)
-- **Automação:** Cowork (Claude AI) + Windows Task Scheduler
-
----
-
-## Estatísticas
-
-| Métrica | Valor |
+| Componente | Tecnologia |
 |---|---|
-| Execuções realizadas | 19+ |
-| Vagas únicas encontradas | 160+ |
-| Plataformas monitoradas | 30+ ATS |
-| Frequência de atualização | Diária |
+| Busca | Tavily API (`search_depth=advanced`, `include_domains`) |
+| Extração | Claude Haiku (`claude-haiku-4-5-20251001`) / regex fallback |
+| Geração HTML | Python puro (sem frameworks) |
+| Hospedagem | GitHub Pages (branch `main`) |
+| Automação | GitHub Actions (cron) |
+| Deduplicação | `url_history.json` com todas as URLs já encontradas |
 
 ---
 
-## Aviso
+## Repositório
 
-As vagas listadas são coletadas automaticamente. Sempre verifique o link original antes de candidatar-se — algumas podem expirar entre a coleta e o acesso. Links quebrados são removidos automaticamente na próxima execução.
-
----
-
-[github.com/cync/vagas-pm](https://github.com/cync/vagas-pm)
+[github.com/cync/vagas-pm](https://github.com/cync/vagas-pm) — GitHub Pages branch: `main`
