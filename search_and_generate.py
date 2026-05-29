@@ -17,22 +17,7 @@ VAGAS_DIR    = SCRIPT_DIR / "vagas"
 HISTORY_FILE = VAGAS_DIR / "url_history.json"
 BRT = timezone(timedelta(hours=-3))
 
-def _scheduled_date() -> str:
-    """
-    Retorna a data BRT do horário agendado mais próximo (09:00 ou 21:00 UTC).
-    Garante data correta mesmo que o GitHub Actions atrase horas a execução.
-    """
-    now_utc = datetime.now(timezone.utc)
-    today_u = now_utc.date()
-    candidates = [
-        datetime(d.year, d.month, d.day, h, 0, tzinfo=timezone.utc)
-        for d in (today_u - timedelta(days=1), today_u, today_u + timedelta(days=1))
-        for h in (9, 21)
-    ]
-    nearest = min(candidates, key=lambda dt: abs((dt - now_utc).total_seconds()))
-    return nearest.astimezone(BRT).date().isoformat()
-
-TODAY = _scheduled_date()
+TODAY = datetime.now(BRT).date().isoformat()
 
 tavily = TavilyClient(api_key=TAVILY_API_KEY)
 
