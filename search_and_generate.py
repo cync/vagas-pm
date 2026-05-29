@@ -289,18 +289,19 @@ def main():
     new_vagas = [v for v in all_vagas if v.get("url") not in history]
     print(f"  Novas (não no histórico): {len(new_vagas)}", flush=True)
 
+    # Sempre salva o arquivo da execução (mesmo com 0 vagas, para registrar no histórico do site)
+    md_filename = VAGAS_DIR / f"vagas_pm_{TODAY}.md"
+    if md_filename.exists():
+        md_filename = VAGAS_DIR / f"vagas_pm_{TODAY}_exec2.md"
+    if md_filename.exists():
+        md_filename = VAGAS_DIR / f"vagas_pm_{TODAY}_exec3.md"
+
+    md_filename.write_text(generate_markdown(new_vagas, prev_count), encoding="utf-8")
+    print(f"\n💾 Salvo: {md_filename.name}", flush=True)
+
     if new_vagas:
-        md_filename = VAGAS_DIR / f"vagas_pm_{TODAY}.md"
-        if md_filename.exists():
-            md_filename = VAGAS_DIR / f"vagas_pm_{TODAY}_exec2.md"
-
-        md_filename.write_text(generate_markdown(new_vagas, prev_count), encoding="utf-8")
-        print(f"\n💾 Salvo: {md_filename.name}", flush=True)
-
         history.update(v["url"] for v in new_vagas if v.get("url"))
         save_history(history)
-    else:
-        print("✅ Nenhuma vaga nova encontrada.", flush=True)
 
     print("\n🏗️  Regenerando site...", flush=True)
     gen = SCRIPT_DIR / "generate_site.py"
