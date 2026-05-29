@@ -36,6 +36,15 @@ def parse_md_file(filepath):
 runs = [r for f in sorted(VAGAS_DIR.glob("vagas_pm_*.md")) if (r := parse_md_file(f))]
 if runs: runs[-1]["is_latest"] = True
 
+# Carrega URLs quebradas e filtra
+_broken_path = SITE_DIR / "broken_links.json"
+_broken: set = set()
+if _broken_path.exists():
+    _broken = set(json.loads(_broken_path.read_text(encoding="utf-8")).get("broken", []))
+    for r in runs:
+        r["jobs"] = [j for j in r["jobs"] if j.get("url") not in _broken]
+        r["novas"] = len(r["jobs"])
+
 all_jobs = []
 for run in runs:
     for j in run["jobs"]:
