@@ -49,7 +49,9 @@ last_week  = this_week - timedelta(weeks=1)
 total_jobs   = len(all_jobs)
 latest_count = runs[-1]["novas"] if runs else 0
 total_runs   = len(runs)
-now_str      = datetime.now().strftime("%d %b %Y · %H:%M")
+from datetime import timezone, timedelta as _td
+_BRT = timezone(_td(hours=-3))
+now_str      = datetime.now(_BRT).strftime("%d %b %Y · %H:%M")
 jobs_json    = json.dumps(all_jobs, ensure_ascii=False)
 runs_json    = json.dumps(runs,     ensure_ascii=False)
 tw_iso       = this_week.isoformat()
