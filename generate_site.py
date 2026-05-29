@@ -627,6 +627,154 @@ footer {{
   text-transform: uppercase;
   color: var(--arc-org);
 }}
+
+/* ══ RESPONSIVE / MOBILE ════════════════════════════ */
+
+/* Tablet */
+@media (max-width: 900px) {{
+  header {{ padding: 0 24px; }}
+  .controls {{ padding: 10px 24px; }}
+  footer {{ padding: 36px 24px 48px; }}
+  main {{ padding: 28px 16px 60px; }}
+}}
+
+/* Mobile */
+@media (max-width: 680px) {{
+  /* Header: empilha marca + stats */
+  header {{
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 0 20px;
+    gap: 0;
+  }}
+  .header-brand {{
+    padding: 20px 0 12px;
+    gap: 14px;
+  }}
+  .brand-copy h1 {{ font-size: 18px; line-height: 22px; }}
+  .brand-copy p  {{ font-size: 12px; }}
+
+  .header-right {{
+    padding: 0 0 16px;
+    gap: 8px;
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    flex-wrap: nowrap;
+  }}
+  .header-right::-webkit-scrollbar {{ display: none; }}
+
+  .stat-pill {{
+    padding: 6px 14px;
+    min-width: 58px;
+    flex-shrink: 0;
+  }}
+  .stat-pill .num {{ font-size: 16px; }}
+  .stat-pill .lbl {{ font-size: 10px; }}
+
+  .personal-link {{
+    font-size: 12px;
+    padding: 6px 14px;
+    flex-shrink: 0;
+  }}
+
+  /* Controls: coluna única */
+  .controls {{
+    padding: 10px 16px;
+    gap: 8px;
+  }}
+  .search-wrap {{ min-width: 100%; order: -1; }}
+  .ctl-select  {{ flex: 1; font-size: 13px; padding: 9px 12px; }}
+  .toggle-new  {{ font-size: 13px; padding: 9px 14px; }}
+  .count-pill  {{ font-size: 12px; padding: 8px 10px; width: 100%; text-align: center; }}
+
+  /* Week nav: scroll horizontal */
+  .week-nav {{
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    padding-bottom: 4px;
+    margin-bottom: 24px;
+  }}
+  .week-nav::-webkit-scrollbar {{ display: none; }}
+  .week-btn {{
+    flex-shrink: 0;
+    padding: 8px 18px;
+    font-size: 13px;
+  }}
+
+  /* Run card */
+  .run-header {{ padding: 14px 18px; gap: 8px; }}
+  .run-date   {{ font-size: 14px; }}
+  .run-exec   {{ font-size: 12px; }}
+  .badge      {{ font-size: 11px; padding: 3px 10px; }}
+
+  /* Tabela → cards no mobile */
+  .jobs-panel table,
+  .jobs-panel thead,
+  .jobs-panel tbody,
+  .jobs-panel tr,
+  .jobs-panel th,
+  .jobs-panel td {{ display: block; width: 100%; }}
+
+  .jobs-panel thead {{ display: none; }}
+
+  .jobs-panel tr {{
+    padding: 14px 18px;
+    border-top: 1px solid rgba(20,20,19,0.08);
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }}
+  .jobs-panel tr:first-child {{ border-top: none; }}
+  .jobs-panel tr:hover td {{ background: transparent; }}
+  .jobs-panel tr:hover {{ background: var(--lifted); }}
+
+  .jobs-panel td {{ padding: 0; border: none; font-size: 14px; }}
+
+  .col-company {{
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--ink);
+  }}
+  .col-role {{
+    font-size: 13px;
+    color: var(--slate);
+    font-weight: 450;
+  }}
+
+  /* ATS tag + Apply na mesma linha */
+  .jobs-panel td:nth-child(3),
+  .jobs-panel td:nth-child(4) {{
+    display: inline-block;
+    width: auto;
+  }}
+  .jobs-panel td:nth-child(3) {{ margin-right: 8px; }}
+
+  a.apply-btn {{
+    font-size: 13px;
+    padding: 5px 16px;
+  }}
+
+  /* Footer */
+  footer {{ padding: 32px 20px 40px; }}
+  .footer-headline {{ font-size: 20px; line-height: 26px; margin-bottom: 24px; }}
+  .footer-grid {{ grid-template-columns: 1fr 1fr; gap: 24px; }}
+  .footer-bottom {{ flex-direction: column; align-items: flex-start; gap: 10px; }}
+
+  main {{ padding: 20px 12px 60px; }}
+  .section-title {{ font-size: 20px; }}
+}}
+
+/* Extra pequeno */
+@media (max-width: 380px) {{
+  .header-brand {{ gap: 10px; }}
+  .brand-copy h1 {{ font-size: 16px; }}
+  .footer-grid {{ grid-template-columns: 1fr; }}
+}}
+
 </style>
 </head>
 <body>
