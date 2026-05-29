@@ -8,7 +8,8 @@ from datetime import datetime, timedelta, date
 from pathlib import Path
 from collections import defaultdict
 
-VAGAS_DIR = Path(__file__).parent.parent
+_vagas_sub = Path(__file__).parent / "vagas"
+VAGAS_DIR = _vagas_sub if (_vagas_sub.exists() and any(_vagas_sub.glob("vagas_pm_*.md"))) else Path(__file__).parent.parent
 SITE_DIR  = Path(__file__).parent
 
 def parse_md_file(filepath):
