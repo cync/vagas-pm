@@ -632,10 +632,6 @@ footer {{
 <!-- ══ HEADER ══════════════════════════════════════════ -->
 <header>
   <div class="header-brand">
-    <div class="mc-mark">
-      <div class="c-red"></div>
-      <div class="c-yel"></div>
-    </div>
     <div class="brand-copy">
       <h1>PM Jobs Internacional</h1>
       <p>curated by Felipe Saraiva · AI Product Builder</p>
@@ -698,12 +694,7 @@ footer {{
       <a href="https://greenhouse.io" target="_blank">Greenhouse</a>
       <a href="https://weworkremotely.com" target="_blank">We Work Remotely</a>
     </div>
-    <div class="footer-col">
-      <div class="footer-col-header">• Sobre</div>
-      <a href="https://felipesaraiva.com" target="_blank">AI Product Builder</a>
-      <a href="https://felipesaraiva.com" target="_blank">BMAD Methodology</a>
-      <a href="https://felipesaraiva.com" target="_blank">Fintech & Agentic AI</a>
-    </div>
+
   </div>
   <div class="footer-divider"></div>
   <div class="footer-bottom">
