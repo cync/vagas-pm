@@ -3,7 +3,7 @@
 Pipeline autônomo: busca vagas PM via Tavily + extrai com Claude API (fallback: regex) + gera site.
 """
 import os, json, re, sys
-from datetime import date, datetime
+from datetime import date, datetime, timezone, timedelta
 from pathlib import Path
 
 from tavily import TavilyClient
@@ -15,7 +15,8 @@ ANTHROPIC_API_KEY = os.environ.get("ANTHROPIC_API_KEY", "")
 SCRIPT_DIR   = Path(__file__).parent
 VAGAS_DIR    = SCRIPT_DIR / "vagas"
 HISTORY_FILE = VAGAS_DIR / "url_history.json"
-TODAY        = date.today().isoformat()
+BRT = timezone(timedelta(hours=-3))
+TODAY = datetime.now(BRT).date().isoformat()
 
 tavily = TavilyClient(api_key=TAVILY_API_KEY)
 
