@@ -53,8 +53,8 @@ git commit + push → GitHub Pages atualizado
 
 | Horário BRT | Horário UTC | Dias |
 |---|---|---|
-| 06:00 | 09:00 | Segunda a sexta |
-| 15:00 | 18:00 | Segunda a sexta |
+| 06:00 | 09:00 | Segunda a sábado |
+| 18:00 | 21:00 | Segunda a sábado |
 
 Para rodar fora do agendamento: **Actions → "Vagas PM – Busca automática" → Run workflow**
 
