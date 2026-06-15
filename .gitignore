@@ -1,0 +1,10 @@
+push_config.json
+__pycache__/
+*.pyc
+onesignal_config.json
+
+# Bat files may contain tokens — keep local only
+*.bat
+setup_git.bat
+push_update.bat
+clean_dead_links.bat
