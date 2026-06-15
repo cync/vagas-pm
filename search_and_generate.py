@@ -48,7 +48,21 @@ DEAD_PATTERNS = [
     "application is not available",
     "this role is no longer",
     "opening has been filled",
+    "page not found",
+    "404 not found",
+    "this posting has been closed",
+    "application is closed",
+    "position is no longer accepting",
+    "this role has been filled",
+    "no longer available",
+    "job listing has expired",
+    "this requisition is closed",
+    "we are no longer accepting",
+    "the page you're looking for",
+    "this job opening has been closed",
 ]
+
+DEAD_URL_PATTERNS = ["/404", "?error=true", "job-not-found", "posting-not-found"]
 
 _HEADERS = {
     "User-Agent": (
@@ -59,19 +73,48 @@ _HEADERS = {
     "Accept": "text/html,application/xhtml+xml,*/*;q=0.8",
 }
 
+def _is_dead_ashby(url: str) -> bool:
+    """Check Ashby job via their public API. Rejects company pages (no UUID)."""
+    import urllib.request, urllib.error
+    uuid_match = re.search(
+        r'[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}', url, re.I
+    )
+    if not uuid_match:
+        return True  # No UUID = company page, not a specific job listing
+    job_id = uuid_match.group(0)
+    company_match = re.search(r'ashbyhq\.com/([^/]+)', url)
+    if not company_match:
+        return True
+    company = company_match.group(1)
+    api_url = f"https://jobs.ashbyhq.com/api/non-posting-external/job/{company}/{job_id}"
+    try:
+        req = urllib.request.Request(api_url, headers=_HEADERS)
+        with urllib.request.urlopen(req, timeout=10) as resp:
+            data = json.loads(resp.read().decode())
+            posting = data.get("jobPosting") or data.get("job") or {}
+            if isinstance(posting, dict):
+                return not posting.get("isPublished", True)
+            return False  # got data but unknown shape — assume alive
+    except urllib.error.HTTPError as e:
+        return e.code in (404, 410, 403, 422)
+    except Exception:
+        return True  # API failure = assume dead (conservative)
+
 def _is_dead_url(url: str) -> bool:
     """Returns True if the job link is expired/not found."""
-    # Ashby is client-rendered and proxy-blocked — skip
     if "ashbyhq.com" in url:
-        return False
+        return _is_dead_ashby(url)
     import urllib.request, urllib.error
     try:
         req = urllib.request.Request(url, headers=_HEADERS)
-        with urllib.request.urlopen(req, timeout=8) as resp:
-            body = resp.read(8000).decode("utf-8", errors="ignore").lower()
+        with urllib.request.urlopen(req, timeout=12) as resp:
+            final_url = resp.geturl().lower()
+            if any(pat in final_url for pat in DEAD_URL_PATTERNS):
+                return True
+            body = resp.read(12000).decode("utf-8", errors="ignore").lower()
             return any(p in body for p in DEAD_PATTERNS)
     except urllib.error.HTTPError as e:
-        return e.code in (404, 410)
+        return e.code in (404, 410, 403)
     except Exception:
         return False  # network error = assume alive
 
@@ -247,6 +290,19 @@ def extract_company_from_title(title: str, url: str) -> str:
         return domain.group(1).replace("-", " ").title()
     return "?"
 
+def _is_specific_job_url(url: str) -> bool:
+    """Reject URLs that are company pages, search pages, or category listings.
+    Only allow URLs that point to a specific job posting."""
+    if re.search(r'/jobs/\d+', url):                            return True  # Greenhouse numeric ID
+    if re.search(r'/[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}', url, re.I): return True  # UUID (Lever, Ashby)
+    if re.search(r'/view/[A-Za-z0-9_=-]+', url):                return True  # Workable ID
+    if re.search(r'/remote-jobs/[a-z0-9-]+', url):              return True  # WWR slug
+    if re.search(r'/jobs/[a-z0-9-]{10,}$', url):                return True  # Remotive/Himalayas slug
+    if re.search(r'/o/[a-z0-9-]+$', url):                       return True  # Recruitee slug
+    if re.search(r'/positions/\d+', url):                        return True  # Careers site numeric
+    if re.search(r'/j/[A-Za-z0-9]+', url):                      return True  # Workable apply link
+    return False
+
 def extract_with_regex(raw_results: list[dict]) -> list[dict]:
     """Extração heurística sem LLM."""
     vagas = []
@@ -260,6 +316,11 @@ def extract_with_regex(raw_results: list[dict]) -> list[dict]:
         if not PM_KEYWORDS.search(full_text):
             continue
         if EXCLUDE_KEYWORDS.search(title):
+            continue
+
+        # Reject URLs that aren't specific job postings
+        if not _is_specific_job_url(url):
+            print(f"    ⏭️  URL não é vaga específica: {url[:80]}", flush=True)
             continue
 
         company = extract_company_from_title(title, url)
@@ -381,6 +442,46 @@ def generate_markdown(vagas, prev_count) -> str:
 
 
 # ── Main ──────────────────────────────────────────────────────────────────────
+def _revalidate_historical_urls():
+    """Spot-check a sample of historical URLs from existing .md files.
+    Catches links that expired between creation and now."""
+    import random as _random
+    from concurrent.futures import ThreadPoolExecutor, as_completed
+
+    all_urls: set = set()
+    url_re = re.compile(r'\[(?:Ver vaga|Aplicar|Apply)\]\((https?://[^)]+)\)')
+    for md_file in sorted(VAGAS_DIR.glob("vagas_*.md")):
+        try:
+            text = md_file.read_text(encoding="utf-8", errors="replace")
+            all_urls.update(url_re.findall(text))
+        except Exception:
+            pass
+
+    known_broken = load_broken_cache()
+    candidates = [u for u in all_urls if u not in known_broken]
+    if not candidates:
+        return
+
+    sample = _random.sample(candidates, min(30, len(candidates)))
+    print(f"  🔁 Re-validando {len(sample)} URLs históricas...", flush=True)
+
+    newly_broken = set()
+    with ThreadPoolExecutor(max_workers=15) as pool:
+        futures = {pool.submit(_is_dead_url, url): url for url in sample}
+        for future in as_completed(futures):
+            url = futures[future]
+            if future.result():
+                newly_broken.add(url)
+                print(f"    💀 Histórico morto: {url[:80]}", flush=True)
+
+    if newly_broken:
+        all_broken = known_broken | newly_broken
+        save_broken_cache(all_broken)
+        print(f"  ✅ {len(newly_broken)} links históricos mortos adicionados ao cache", flush=True)
+    else:
+        print(f"  ✅ Todos os {len(sample)} links históricos válidos", flush=True)
+
+
 def main():
     VAGAS_DIR.mkdir(parents=True, exist_ok=True)
 
@@ -388,6 +489,10 @@ def main():
     prev_count = len(history)
 
     print(f"📂 Histórico: {prev_count} URLs conhecidas", flush=True)
+
+    # Periodic re-validation of historical URLs
+    _revalidate_historical_urls()
+
     print("🔍 Buscando vagas...", flush=True)
     raw = search_all()
     print(f"📋 {len(raw)} resultados brutos obtidos", flush=True)

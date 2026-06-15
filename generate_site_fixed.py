@@ -92,128 +92,13 @@ if uiux_runs: uiux_runs[-1]["is_latest"] = True
 _broken_path = SITE_DIR / "broken_links.json"
 _broken: set = set()
 if _broken_path.exists():
-    try:
-        _raw = _broken_path.read_bytes().rstrip(b"\x00").decode("utf-8")
-        from urllib.parse import unquote as _unquote
-        _broken_raw = set(json.loads(_raw).get("broken", []))
-        _broken = _broken_raw | {_unquote(u) for u in _broken_raw}
-    except Exception:
-        pass
-    def _is_broken(url):
-        return url in _broken or _unquote(url) in _broken
+    _broken = set(json.loads(_broken_path.read_text(encoding="utf-8")).get("broken", []))
     for r in runs:
-        r["jobs"] = [j for j in r["jobs"] if not _is_broken(j.get("url", ""))]
+        r["jobs"] = [j for j in r["jobs"] if j.get("url") not in _broken]
         r["novas"] = len(r["jobs"])
     for r in uiux_runs:
-        r["jobs"] = [j for j in r["jobs"] if not _is_broken(j.get("url", ""))]
+        r["jobs"] = [j for j in r["jobs"] if j.get("url") not in _broken]
         r["novas"] = len(r["jobs"])
-
-# ── Live re-validation: HTTP-check all remaining URLs ────────────────────────
-def _validate_all_links_live(runs_list):
-    """HTTP-check every remaining URL and remove dead ones.
-    Updates broken_links.json with newly discovered broken URLs."""
-    from concurrent.futures import ThreadPoolExecutor, as_completed
-    import urllib.request, urllib.error
-
-    _HEADERS = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-                      "AppleWebKit/537.36 (KHTML, like Gecko) "
-                      "Chrome/124.0.0.0 Safari/537.36",
-        "Accept": "text/html,application/xhtml+xml,*/*;q=0.8",
-    }
-    _DEAD_PHRASES = [
-        "the job you requested was not found", "job not found",
-        "this job is no longer available", "this job listing is no longer active",
-        "no longer accepting applications", "position has been filled",
-        "job has expired", "this position is no longer available",
-        "application is not available", "this role is no longer",
-        "opening has been filled", "page not found", "404 not found",
-        "this posting has been closed", "application is closed",
-        "position is no longer accepting", "this role has been filled",
-        "no longer available", "job listing has expired",
-        "this requisition is closed", "we are no longer accepting",
-        "the page you're looking for", "this job opening has been closed",
-    ]
-    _DEAD_URL_PATS = ["/404", "?error=true", "job-not-found", "posting-not-found"]
-
-    def _check(url):
-        if "ashbyhq.com" in url:
-            import re as _re
-            uuid_m = _re.search(r'[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}', url, _re.I)
-            if not uuid_m:
-                return True  # company page = dead
-            comp_m = _re.search(r'ashbyhq\.com/([^/]+)', url)
-            if not comp_m:
-                return True
-            api = f"https://jobs.ashbyhq.com/api/non-posting-external/job/{comp_m.group(1)}/{uuid_m.group(0)}"
-            try:
-                req = urllib.request.Request(api, headers=_HEADERS)
-                with urllib.request.urlopen(req, timeout=10) as resp:
-                    data = json.loads(resp.read().decode())
-                    p = data.get("jobPosting") or data.get("job") or {}
-                    if isinstance(p, dict):
-                        return not p.get("isPublished", True)
-                    return False
-            except urllib.error.HTTPError as e:
-                return e.code in (404, 410, 403, 422)
-            except Exception:
-                return True
-        try:
-            req = urllib.request.Request(url, headers=_HEADERS)
-            with urllib.request.urlopen(req, timeout=12) as resp:
-                final = resp.geturl().lower()
-                if any(p in final for p in _DEAD_URL_PATS):
-                    return True
-                body = resp.read(12000).decode("utf-8", errors="ignore").lower()
-                return any(p in body for p in _DEAD_PHRASES)
-        except urllib.error.HTTPError as e:
-            return e.code in (404, 410, 403)
-        except Exception:
-            return False
-
-    all_urls = set()
-    for r in runs_list:
-        for j in r["jobs"]:
-            u = j.get("url", "")
-            if u:
-                all_urls.add(u)
-
-    if not all_urls:
-        return
-
-    url_list = sorted(all_urls)
-    print(f"  Validando {len(url_list)} links via HTTP...", flush=True)
-    newly_dead = set()
-
-    with ThreadPoolExecutor(max_workers=15) as pool:
-        futures = {pool.submit(_check, u): u for u in url_list}
-        for future in as_completed(futures):
-            u = futures[future]
-            if future.result():
-                newly_dead.add(u)
-
-    if newly_dead:
-        for r in runs_list:
-            r["jobs"] = [j for j in r["jobs"] if j.get("url", "") not in newly_dead]
-            r["novas"] = len(r["jobs"])
-
-        existing_broken = set()
-        if _broken_path.exists():
-            try:
-                _raw = _broken_path.read_bytes().rstrip(b"\x00").decode("utf-8")
-                existing_broken = set(json.loads(_raw).get("broken", []))
-            except Exception:
-                pass
-        all_broken = sorted(existing_broken | newly_dead)
-        tmp = _broken_path.with_suffix(".tmp")
-        tmp.write_text(json.dumps({"broken": all_broken}, indent=2, ensure_ascii=False), encoding="utf-8")
-        tmp.replace(_broken_path)
-        print(f"  {len(newly_dead)} links mortos removidos e salvos em broken_links.json", flush=True)
-    else:
-        print(f"  Todos os {len(url_list)} links validos", flush=True)
-
-_validate_all_links_live(runs)
-_validate_all_links_live(uiux_runs)
 
 all_jobs = []
 for run in runs:
