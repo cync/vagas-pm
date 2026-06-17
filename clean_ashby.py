@@ -1,12 +1,17 @@
 #!/usr/bin/env python3
-"""clean_ashby.py -- Remove broken Ashby UUID and known-broken Greenhouse rows
-from all vagas files in both site/vagas/ and parent folder."""
+"""clean_ashby.py -- Remove broken Ashby UUID and known-broken URLs
+from all vagas files using broken_links.json as source of truth."""
 import re
 from pathlib import Path
 
-UUID = re.compile(r'[a-f0-9]{8}-[a-f0-9]{4}', re.I)
-BROKEN_GH = re.compile(r'greenhouse\.io/(remotecom|nearform)/', re.I)
+from link_checker import BrokenCache
+
 site = Path(__file__).parent
+BROKEN_PATH = site / "broken_links.json"
+UUID = re.compile(r'[a-f0-9]{8}-[a-f0-9]{4}', re.I)
+URL_RE = re.compile(r'\[(?:Ver vaga|Aplicar|Apply)\]\((https?://[^)]+)\)')
+
+cache = BrokenCache(BROKEN_PATH)
 removed = 0
 
 for folder in [site / 'vagas', site.parent]:
@@ -19,14 +24,19 @@ for folder in [site / 'vagas', site.parent]:
         clean = []
         for l in lines:
             drop = False
-            if 'ashby' in l.lower() and UUID.search(l):
+            # Ashby URLs with UUIDs are always broken
+            if 'ashbyhq.com' in l.lower() and UUID.search(l):
                 drop = True
-            if BROKEN_GH.search(l):
-                drop = True
+            # Any URL in broken_links.json
+            urls = URL_RE.findall(l)
+            for url in urls:
+                if cache.is_broken(url.strip()):
+                    drop = True
+                    break
             if not drop:
                 clean.append(l)
         if len(clean) != len(lines):
-            removed += len(lines) - len(clean)
+            removed += len(lines) - len(lines)
             f.write_text('\n'.join(clean), encoding='utf-8')
 
 print(f'clean_ashby: removed {removed} broken rows.')
