@@ -52,7 +52,12 @@ DEAD_PHRASES = [
     "we are no longer accepting",
     "the page you're looking for",
     "this job opening has been closed",
+    "sorry, we couldn't find anything here",
+    "couldn't find anything here",
     "vaga nao encontrada",
+    "this position has been closed",
+    "position closed",
+    "this job posting is no longer available",
 ]
 
 DEAD_URL_PATTERNS = ["/404", "?error=true", "job-not-found", "posting-not-found"]
@@ -121,7 +126,7 @@ def _is_dead_http(url: str) -> bool:
             final = resp.geturl().lower()
             if any(p in final for p in DEAD_URL_PATTERNS):
                 return True
-            body = resp.read(12000).decode("utf-8", errors="ignore").lower()
+            body = resp.read(32000).decode("utf-8", errors="ignore").lower()
             return any(p in body for p in DEAD_PHRASES)
     except urllib.error.HTTPError as e:
         return e.code in (404, 410, 403)

@@ -8,7 +8,7 @@ from datetime import datetime, timedelta, date
 from pathlib import Path
 from collections import defaultdict
 
-from link_checker import BrokenCache, check_urls_parallel
+from link_checker import BrokenCache, check_urls_parallel, is_specific_job_url, is_dead_url
 
 _vagas_sub  = Path(__file__).parent / "vagas"
 _vagas_root = Path(__file__).parent.parent
@@ -107,10 +107,14 @@ _broken_path = SITE_DIR / "broken_links.json"
 
 cache = BrokenCache(_broken_path)
 for r in runs:
-    r["jobs"] = [j for j in r["jobs"] if not cache.is_broken(j.get("url", ""))]
+    r["jobs"] = [j for j in r["jobs"]
+                 if not cache.is_broken(j.get("url", ""))
+                 and is_specific_job_url(j.get("url", ""))]
     r["novas"] = len(r["jobs"])
 for r in uiux_runs:
-    r["jobs"] = [j for j in r["jobs"] if not cache.is_broken(j.get("url", ""))]
+    r["jobs"] = [j for j in r["jobs"]
+                 if not cache.is_broken(j.get("url", ""))
+                 and is_specific_job_url(j.get("url", ""))]
     r["novas"] = len(r["jobs"])
 
 # ── Live re-validation: HTTP-check older URLs, trust latest run ────────────────
