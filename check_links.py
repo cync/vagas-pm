@@ -7,7 +7,7 @@ import re, sys, time
 from datetime import date, timedelta
 from pathlib import Path
 
-from link_checker import BrokenCache, is_dead_url, is_specific_job_url
+from link_checker import BrokenCache, is_dead_url, normalize_url
 
 SITE_DIR    = Path(__file__).parent
 VAGAS_SUB   = SITE_DIR / "vagas"
@@ -22,7 +22,8 @@ def collect_urls():
             for f in root.glob(pattern):
                 try:
                     text = f.read_bytes().rstrip(b'\x00').decode("utf-8", errors="replace")
-                    urls.update(re.findall(r'\[(?:Ver vaga|Aplicar|Apply)\]\((https?://[^)]+)\)', text))
+                    for u in re.findall(r'\[(?:Ver vaga|Aplicar|Apply)\]\((https?://[^)]+)\)', text):
+                        urls.add(normalize_url(u))
                 except Exception:
                     pass
     return urls

@@ -8,7 +8,7 @@ from datetime import datetime, timedelta, date
 from pathlib import Path
 from collections import defaultdict
 
-from link_checker import BrokenCache, check_urls_parallel, is_specific_job_url, is_dead_url
+from link_checker import BrokenCache, check_urls_parallel, is_specific_job_url, normalize_url
 
 _vagas_sub  = Path(__file__).parent / "vagas"
 _vagas_root = Path(__file__).parent.parent
@@ -36,16 +36,6 @@ def _infer_region(role):
     if any(k in r for k in _EUROPE_KEYWORDS):
         return "europe"
     return "global"
-
-def _normalize_url(url: str) -> str:
-    """Normaliza http:// para https:// para URLs de ATS conhecidos."""
-    if url.startswith("http://") and any(
-        d in url for d in ("greenhouse.io", "lever.co", "ashbyhq.com",
-                           "smartrecruiters.com", "weworkremotely.com",
-                           "remotive.com", "himalayas.app")
-    ):
-        return "https://" + url[7:]
-    return url
 
 def parse_md_file(filepath, prefix="vagas_pm"):
     text = filepath.read_text(encoding="utf-8", errors="replace")
@@ -78,7 +68,7 @@ def parse_md_file(filepath, prefix="vagas_pm"):
         rm = re.match(r'\|\s*\*\*(.+?)\*\*\s*\|\s*(.+?)\s*\|\s*\[Ver vaga\]\((.+?)\)', line)
         if rm:
             role = rm.group(2).strip()
-            url = _normalize_url(rm.group(3).strip())
+            url = normalize_url(rm.group(3).strip())
             jobs.append({"company": rm.group(1).strip(), "role": role,
                          "url": url, "ats": current_ats,
                          "date": date_str, "exec": exec_n, "file": filepath.name,
@@ -90,7 +80,7 @@ def parse_md_file(filepath, prefix="vagas_pm"):
             co = rm2.group(1).strip()
             if co and co not in ('Empresa', 'Company', '---', ''):
                 role = rm2.group(2).strip()
-                url = _normalize_url(rm2.group(3).strip())
+                url = normalize_url(rm2.group(3).strip())
                 jobs.append({"company": co, "role": role,
                              "url": url, "ats": current_ats,
                              "date": date_str, "exec": exec_n, "file": filepath.name,
@@ -117,37 +107,46 @@ for r in uiux_runs:
                  and is_specific_job_url(j.get("url", ""))]
     r["novas"] = len(r["jobs"])
 
-# ── Live re-validation: HTTP-check older URLs, trust latest run ────────────────
+# ── Live re-validation: HTTP-check ALL remaining URLs ─────────────────────────
 def _validate_all_links_live(*runs_lists):
-    """HTTP-check URLs from older runs. Latest run is trusted (just validated by search_and_generate.py)."""
-    from datetime import date as _date
-    today_str = _date.today().isoformat()
-
-    trusted_urls = set()   # URLs from today's latest run — already validated
-    recheck_urls = set()   # Older URLs — need re-validation
-
+    """HTTP-check ALL remaining URLs across all run lists.
+    Every URL must be verified alive before appearing on the site."""
+    all_urls = set()
     for runs_list in runs_lists:
         for r in runs_list:
             for j in r["jobs"]:
                 u = j.get("url", "")
-                if not u:
-                    continue
-                if r.get("is_latest") and r.get("date") == today_str:
-                    trusted_urls.add(u)
-                else:
-                    recheck_urls.add(u)
+                if u:
+                    all_urls.add(u)
 
-    # Remove already-known broken from recheck set
-    recheck_urls -= cache.broken
-
-    if not recheck_urls:
-        print(f"  Todos os links validos (latest trusted, 0 para re-checar)", flush=True)
+    if not all_urls:
         return
 
-    url_list = sorted(recheck_urls)
-    print(f"  Validando {len(url_list)} links antigos via HTTP (latest trusted)...", flush=True)
+    # Skip URLs already known to be ok (checked recently)
+    from datetime import date as _date, timedelta as _td
+    today_str = _date.today().isoformat()
+    stale_cutoff = (_date.today() - _td(days=3)).isoformat()
+
+    already_ok = set()
+    to_check = set()
+    for u in all_urls:
+        if u in cache.ok and cache._checked_at.get(u, "0000-00-00") > stale_cutoff:
+            already_ok.add(u)
+        else:
+            to_check.add(u)
+
+    if not to_check:
+        print(f"  Todos os {len(already_ok)} links no cache (recentes)", flush=True)
+        return
+
+    url_list = sorted(to_check)
+    print(f"  Validando {len(url_list)} links via HTTP ({len(already_ok)} no cache)...", flush=True)
     results = check_urls_parallel(url_list)
     newly_dead = {u for u, dead in results.items() if dead}
+    newly_alive = {u for u, dead in results.items() if not dead}
+
+    # Mark alive URLs in cache
+    cache.add_ok_batch(newly_alive, today_str)
 
     if newly_dead:
         for runs_list in runs_lists:
@@ -156,10 +155,11 @@ def _validate_all_links_live(*runs_lists):
                 r["novas"] = len(r["jobs"])
 
         cache.add_broken_batch(newly_dead)
-        cache.save()
-        print(f"  {len(newly_dead)} links mortos removidos e salvos em broken_links.json", flush=True)
+        print(f"  {len(newly_dead)} links mortos removidos", flush=True)
     else:
-        print(f"  Todos os {len(url_list)} links antigos validos", flush=True)
+        print(f"  Todos os {len(url_list)} links validos", flush=True)
+
+    cache.save()
 
 _validate_all_links_live(runs, uiux_runs)
 

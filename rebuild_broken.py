@@ -1,68 +1,67 @@
-import re, json
+#!/usr/bin/env python3
+"""rebuild_broken.py -- Rebuild broken_links.json by actually checking all URLs.
+No more blanket marking by date or company. Every URL is verified via API/HTTP."""
+import re, json, sys
 from pathlib import Path
 from datetime import date
+
+from link_checker import BrokenCache, check_urls_parallel, normalize_url
 
 SITE_DIR    = Path(__file__).parent
 VAGAS_SUB   = SITE_DIR / "vagas"
 VAGAS_ROOT  = SITE_DIR.parent
 BROKEN_PATH = SITE_DIR / "broken_links.json"
-CUTOFF_DATE = date(2026, 5, 28)
-BROKEN_GH_COMPANIES = {"remotecom", "nearform", "techietalent"}
 
-ASHBY_UUID = re.compile(r'[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}', re.I)
-URL_RE     = re.compile(r'\[(?:Ver vaga|Aplicar|Apply)\]\((https?://[^)]+)\)')
-GH_JOB_RE  = re.compile(r'greenhouse\.io/([^/]+)/jobs/', re.I)
+URL_RE = re.compile(r'\[(?:Ver vaga|Aplicar|Apply)\]\((https?://[^)]+)\)')
 
-MANUAL_BROKEN = {
-    "https://jobs.lever.co/ciandt/2b5392b0-99a1-4bb6-9e63-a076df1d5321",
-    "https://jobs.lever.co/vacancies/0f4f3758-1187-4a3b-8727-d227e8ed3018",
-}
-
-def load_existing():
-    if not BROKEN_PATH.exists():
-        return set(), set()
-    try:
-        raw = BROKEN_PATH.read_bytes().rstrip(b'\x00').decode('utf-8')
-        d = json.loads(raw)
-        return set(d.get('broken', [])), set(d.get('ok', []))
-    except Exception:
-        return set(), set()
+def collect_all_urls():
+    urls = set()
+    for folder in [VAGAS_SUB, VAGAS_ROOT]:
+        for pattern in ['vagas_pm_*.md', 'vagas_uiux_*.md']:
+            for f in folder.glob(pattern):
+                try:
+                    text = f.read_bytes().rstrip(b'\x00').decode('utf-8', errors='replace')
+                    for u in URL_RE.findall(text):
+                        urls.add(normalize_url(u.strip()))
+                except Exception:
+                    pass
+    return urls
 
 def main():
-    broken, ok = load_existing()
-    broken |= MANUAL_BROKEN
-    ok -= MANUAL_BROKEN
-    added = 0
-    for folder in [VAGAS_SUB, VAGAS_ROOT]:
-        for f in list(folder.glob('vagas_pm_*.md')) + list(folder.glob('vagas_uiux_*.md')):
-            m = re.search(r'(\d{4}-\d{2}-\d{2})', f.name)
-            try:
-                fdate = date.fromisoformat(m.group(1)) if m else date.min
-            except Exception:
-                fdate = date.min
-            try:
-                text = f.read_bytes().rstrip(b'\x00').decode('utf-8', errors='replace')
-            except Exception:
-                continue
-            for url in URL_RE.findall(text):
-                url = url.strip()
-                mark = False
-                if 'ashbyhq.com' in url and ASHBY_UUID.search(url):
-                    mark = True
-                gh_m = GH_JOB_RE.search(url)
-                if gh_m:
-                    company = gh_m.group(1).lower()
-                    if company in BROKEN_GH_COMPANIES or fdate < CUTOFF_DATE:
-                        mark = True
-                if mark and url not in broken:
-                    broken.add(url)
-                    ok.discard(url)
-                    added += 1
-    data = {'broken': sorted(broken), 'ok': sorted(ok - broken)}
-    tmp = BROKEN_PATH.with_suffix('.tmp')
-    tmp.write_text(json.dumps(data, indent=2, ensure_ascii=False), encoding='utf-8')
-    tmp.replace(BROKEN_PATH)
-    print(f'rebuild_broken: +{added} new. Total broken={len(broken)}, ok={len(data["ok"])}')
+    do_check = "--check" in sys.argv
+    all_urls = collect_all_urls()
+    cache = BrokenCache(BROKEN_PATH)
+
+    if do_check:
+        print(f"Checking {len(all_urls)} URLs via API/HTTP...")
+        results = check_urls_parallel(sorted(all_urls))
+        newly_broken = {u for u, dead in results.items() if dead}
+        newly_alive = {u for u, dead in results.items() if not dead}
+
+        # Remove URLs from broken cache that are now alive
+        recovered = cache.broken & newly_alive
+        for u in recovered:
+            cache.mark_ok(u, date.today().isoformat())
+
+        cache.add_broken_batch(newly_broken)
+        cache.save()
+
+        print(f"Results: {len(newly_alive)} alive, {len(newly_broken)} dead")
+        if recovered:
+            print(f"  {len(recovered)} URLs recovered from broken cache")
+        for u in sorted(newly_broken):
+            print(f"  DEAD: {u}")
+    else:
+        # Without --check, just prune broken cache to only URLs that still exist in .md files
+        stale = cache.broken - all_urls
+        if stale:
+            for u in stale:
+                cache._broken.discard(u)
+            cache.save()
+            print(f"Pruned {len(stale)} stale URLs from broken cache")
+        print(f"Total URLs in .md files: {len(all_urls)}")
+        print(f"Total in broken cache: {len(cache.broken)}")
+        print(f"Run with --check to verify all URLs via API/HTTP")
 
 if __name__ == '__main__':
     main()

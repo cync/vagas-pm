@@ -6,7 +6,9 @@ Usado por: generate_site.py, search_and_generate.py, check_links.py, clean_ashby
 Fornece:
   - is_dead_url(url)         -> bool (checagem individual)
   - check_urls_parallel(urls) -> dict {url: bool} (checagem em lote)
-  - BrokenCache              -> classe para ler/escritar broken_links.json
+  - normalize_url(url)        -> str  (normalização de URL)
+  - is_specific_job_url(url)  -> bool (rejeita páginas de empresa)
+  - BrokenCache               -> classe para ler/escritar broken_links.json
 """
 import json
 import re
@@ -67,7 +69,24 @@ _ASHBY_UUID_RE = re.compile(
     r"[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}", re.I
 )
 _GH_JOB_RE = re.compile(r"greenhouse\.io/([^/]+)/jobs/(\d+)", re.I)
-_GH_COMPANY_RE = re.compile(r"greenhouse\.io/([^/]+)", re.I)
+
+
+# ── URL normalization ─────────────────────────────────────────────────────────
+
+def normalize_url(url: str) -> str:
+    """Normaliza URL para comparação consistente.
+    - http:// -> https:// para ATS conhecidos
+    - Remove trailing slash
+    - Strip whitespace
+    """
+    url = url.strip()
+    if url.startswith("http://") and any(
+        d in url for d in ("greenhouse.io", "lever.co", "ashbyhq.com",
+                           "smartrecruiters.com", "weworkremotely.com",
+                           "remotive.com", "himalayas.app")
+    ):
+        url = "https://" + url[7:]
+    return url.rstrip("/")
 
 
 # ── Ashby API check ───────────────────────────────────────────────────────────
@@ -136,7 +155,8 @@ def _is_dead_http(url: str) -> bool:
 # ── API pública ────────────────────────────────────────────────────────────────
 
 def is_dead_url(url: str) -> bool:
-    """Retorna True se o link da vaga está morto/expirado."""
+    """Retorna True se o link da vaga está morto/expirado.
+    Checagem por API (Ashby, Greenhouse) + HTTP body/redirect."""
     if "ashbyhq.com" in url:
         return _is_dead_ashby(url)
     if "greenhouse.io" in url:
@@ -185,7 +205,8 @@ def is_specific_job_url(url: str) -> bool:
 # ── Cache de links quebrados ──────────────────────────────────────────────────
 
 class BrokenCache:
-    """Interface para broken_links.json. Garante atomicidade e consistência."""
+    """Interface para broken_links.json. Garante atomicidade e consistência.
+    Todas as URLs são normalizadas antes de comparação."""
 
     def __init__(self, path: Path):
         self.path = path
@@ -200,9 +221,11 @@ class BrokenCache:
         try:
             raw = self.path.read_bytes().rstrip(b"\x00").decode("utf-8")
             data = json.loads(raw)
-            self._broken = set(data.get("broken", []))
-            self._ok = set(data.get("ok", []))
-            self._checked_at = data.get("checked_at", {})
+            self._broken = {normalize_url(u) for u in data.get("broken", [])}
+            self._ok = {normalize_url(u) for u in data.get("ok", [])}
+            self._checked_at = {
+                normalize_url(u): v for u, v in data.get("checked_at", {}).items()
+            }
         except Exception:
             pass
 
@@ -228,26 +251,38 @@ class BrokenCache:
         return self._ok
 
     def is_broken(self, url: str) -> bool:
-        from urllib.parse import unquote
-        return url in self._broken or unquote(url) in self._broken
+        """Verifica se URL está no cache de links quebrados.
+        Normaliza a URL antes de comparar."""
+        n = normalize_url(url)
+        if n in self._broken:
+            return True
+        decoded = urllib.parse.unquote(n)
+        return decoded != n and decoded in self._broken
 
     def mark_broken(self, url: str):
-        self._broken.add(url)
-        self._ok.discard(url)
-        self._checked_at.pop(url, None)
+        n = normalize_url(url)
+        self._broken.add(n)
+        self._ok.discard(n)
+        self._checked_at.pop(n, None)
 
     def mark_ok(self, url: str, date_str: str):
-        self._ok.add(url)
-        self._broken.discard(url)
-        self._checked_at[url] = date_str
+        n = normalize_url(url)
+        self._ok.add(n)
+        self._broken.discard(n)
+        self._checked_at[n] = date_str
 
     def add_broken_batch(self, urls: set[str]):
         for u in urls:
             self.mark_broken(u)
 
+    def add_ok_batch(self, urls: set[str], date_str: str):
+        for u in urls:
+            self.mark_ok(u, date_str)
+
     def prune_stale(self, live_urls: set[str]):
         """Remove entries that no longer appear in any .md file."""
-        self._ok &= live_urls
+        normalized_live = {normalize_url(u) for u in live_urls}
+        self._ok &= normalized_live
         self._checked_at = {
-            u: v for u, v in self._checked_at.items() if u in live_urls
+            u: v for u, v in self._checked_at.items() if u in normalized_live
         }

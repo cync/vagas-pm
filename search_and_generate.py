@@ -10,6 +10,7 @@ from tavily import TavilyClient
 
 from link_checker import (
     BrokenCache, check_urls_parallel, is_dead_url, is_specific_job_url,
+    normalize_url,
 )
 
 # ── Configurações ────────────────────────────────────────────────────────────
@@ -41,29 +42,38 @@ def save_history(history: set):
 # ── Validação de links ─────────────────────────────────────────────────────────
 def filter_live_vagas(vagas: list[dict]) -> list[dict]:
     """Remove vagas with dead/expired links (parallel check)."""
+    from datetime import date as _date
     cache = BrokenCache(BROKEN_FILE)
+    today_str = _date.today().isoformat()
 
-    to_check = [v for v in vagas if v.get("url") not in cache.broken]
+    to_check = [v for v in vagas if normalize_url(v.get("url", "")) not in cache.broken]
 
     if not to_check:
         return []
 
     print(f"  🔍 Validando {len(to_check)} links novos...", flush=True)
-    urls_to_check = [v["url"] for v in to_check if v.get("url")]
+    urls_to_check = [normalize_url(v["url"]) for v in to_check if v.get("url")]
     results = check_urls_parallel(urls_to_check)
 
     live = []
     newly_broken = set()
+    newly_alive = set()
     for v in to_check:
-        if results.get(v["url"], False):
-            newly_broken.add(v["url"])
-            print(f"    💀 {v.get('company','?')} — {v['url']}", flush=True)
+        nurl = normalize_url(v["url"])
+        if results.get(nurl, False):
+            newly_broken.add(nurl)
+            print(f"    💀 {v.get('company','?')} — {nurl}", flush=True)
         else:
             live.append(v)
+            newly_alive.add(nurl)
 
     if newly_broken:
         cache.add_broken_batch(newly_broken)
-        cache.save()
+    if newly_alive:
+        cache.add_ok_batch(newly_alive, today_str)
+    cache.save()
+
+    if newly_broken:
         print(f"  ✅ {len(live)} links vivos | 💀 {len(newly_broken)} removidos", flush=True)
     else:
         print(f"  ✅ Todos os {len(live)} links válidos", flush=True)
