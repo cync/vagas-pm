@@ -8,23 +8,21 @@ from datetime import date
 from link_checker import BrokenCache, check_urls_parallel, normalize_url
 
 SITE_DIR    = Path(__file__).parent
-VAGAS_SUB   = SITE_DIR / "vagas"
-VAGAS_ROOT  = SITE_DIR.parent
+VAGAS_DIR   = SITE_DIR / "vagas"
 BROKEN_PATH = SITE_DIR / "broken_links.json"
 
 URL_RE = re.compile(r'\[(?:Ver vaga|Aplicar|Apply)\]\((https?://[^)]+)\)')
 
 def collect_all_urls():
     urls = set()
-    for folder in [VAGAS_SUB, VAGAS_ROOT]:
-        for pattern in ['vagas_pm_*.md', 'vagas_uiux_*.md']:
-            for f in folder.glob(pattern):
-                try:
-                    text = f.read_bytes().rstrip(b'\x00').decode('utf-8', errors='replace')
-                    for u in URL_RE.findall(text):
-                        urls.add(normalize_url(u.strip()))
-                except Exception:
-                    pass
+    for pattern in ['vagas_pm_*.md', 'vagas_uiux_*.md']:
+        for f in VAGAS_DIR.glob(pattern):
+            try:
+                text = f.read_bytes().rstrip(b'\x00').decode('utf-8', errors='replace')
+                for u in URL_RE.findall(text):
+                    urls.add(normalize_url(u.strip()))
+            except Exception:
+                pass
     return urls
 
 def main():

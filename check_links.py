@@ -10,22 +10,20 @@ from pathlib import Path
 from link_checker import BrokenCache, is_dead_url, normalize_url
 
 SITE_DIR    = Path(__file__).parent
-VAGAS_SUB   = SITE_DIR / "vagas"
-VAGAS_ROOT  = SITE_DIR.parent
+VAGAS_DIR   = SITE_DIR / "vagas"
 BROKEN_PATH = SITE_DIR / "broken_links.json"
 STALE_DAYS  = 14
 
 def collect_urls():
     urls = set()
     for pattern in ["vagas_pm_*.md", "vagas_uiux_*.md"]:
-        for root in [VAGAS_ROOT, VAGAS_SUB]:
-            for f in root.glob(pattern):
-                try:
-                    text = f.read_bytes().rstrip(b'\x00').decode("utf-8", errors="replace")
-                    for u in re.findall(r'\[(?:Ver vaga|Aplicar|Apply)\]\((https?://[^)]+)\)', text):
-                        urls.add(normalize_url(u))
-                except Exception:
-                    pass
+        for f in VAGAS_DIR.glob(pattern):
+            try:
+                text = f.read_bytes().rstrip(b'\x00').decode("utf-8", errors="replace")
+                for u in re.findall(r'\[(?:Ver vaga|Aplicar|Apply)\]\((https?://[^)]+)\)', text):
+                    urls.add(normalize_url(u))
+            except Exception:
+                pass
     return urls
 
 def main():

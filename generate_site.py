@@ -10,18 +10,11 @@ from collections import defaultdict
 
 from link_checker import BrokenCache, check_urls_parallel, is_specific_job_url, normalize_url
 
-_vagas_sub  = Path(__file__).parent / "vagas"
-_vagas_root = Path(__file__).parent.parent
 SITE_DIR    = Path(__file__).parent
+VAGAS_DIR   = SITE_DIR / "vagas"
 
-# Merge PM files from both site/vagas and root; site/vagas takes precedence for same filename
 def _collect_files(pattern):
-    seen = {}
-    for f in sorted(_vagas_root.glob(pattern)):
-        seen[f.name] = f
-    for f in sorted(_vagas_sub.glob(pattern)):
-        seen[f.name] = f   # site/vagas overwrites root for same name
-    return sorted(seen.values(), key=lambda f: f.name)
+    return sorted(VAGAS_DIR.glob(pattern), key=lambda f: f.name)
 
 _LATAM_KEYWORDS  = {'LATAM','LATIN AMERICA','BRASIL','BRAZIL','SOUTH AMERICA',
                     'ARGENTINA','COLOMBIA','MEXICO','PERU','CHILE'}
