@@ -191,6 +191,8 @@ def is_specific_job_url(url: str) -> bool:
         return True  # Workable ID
     if re.search(r"/remote-jobs/[a-z0-9-]+", url):
         return True  # WWR slug
+    if re.search(r"remotive\.com/remote/jobs/[a-z0-9-]+/[a-z0-9-]+-\d+$", url):
+        return True  # Remotive category + slug + numeric ID
     if re.search(r"/jobs/[a-z0-9-]{10,}$", url):
         return True  # Remotive/Himalayas slug
     if re.search(r"/o/[a-z0-9-]+$", url):

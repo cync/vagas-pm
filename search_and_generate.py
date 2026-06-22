@@ -82,12 +82,17 @@ def filter_live_vagas(vagas: list[dict]) -> list[dict]:
 
 # ── Buscas ────────────────────────────────────────────────────────────────────
 SEARCHES = [
-    ("product manager remote LATAM Brazil",   ["jobs.lever.co"],                                    15),
-    ("product manager remote LATAM Brazil",   ["jobs.ashbyhq.com"],                                 15),
-    ("product manager remote LATAM Brazil",   ["boards.greenhouse.io","job-boards.greenhouse.io"],  15),
-    ("product manager remote LATAM",          ["jobs.smartrecruiters.com"],                         10),
-    ("product manager remote LATAM Brazil",   ["weworkremotely.com"],                               10),
-    ("product manager remote LATAM",          ["remotive.com","himalayas.app"],                     10),
+    ("product manager remote LATAM Brazil",         ["jobs.lever.co"],                                   20),
+    ("product owner remote LATAM Brazil",           ["jobs.lever.co"],                                   10),
+    ("product manager remote LATAM Brazil",         ["jobs.ashbyhq.com"],                                20),
+    ("product owner remote LATAM Brazil",           ["jobs.ashbyhq.com"],                                10),
+    ("product manager remote LATAM Brazil",         ["boards.greenhouse.io","job-boards.greenhouse.io"], 20),
+    ("product owner remote LATAM Brazil",           ["boards.greenhouse.io","job-boards.greenhouse.io"], 10),
+    ("product manager remote LATAM",                ["jobs.smartrecruiters.com"],                        10),
+    ("product manager remote LATAM Brazil",         ["weworkremotely.com"],                              10),
+    ("product manager remote LATAM",                ["remotive.com","himalayas.app"],                    15),
+    ("product manager remote LATAM Brazil",         ["apply.workable.com"],                              10),
+    ("product manager remote worldwide OR global",  ["jobs.lever.co","jobs.ashbyhq.com","job-boards.greenhouse.io"], 20),
 ]
 
 def search_all() -> list[dict]:
@@ -99,6 +104,7 @@ def search_all() -> list[dict]:
                 include_domains=domains,
                 max_results=n,
                 search_depth="advanced",
+                time_range="week",
             )
             hits = resp.get("results", [])
             for h in hits:
@@ -118,6 +124,7 @@ def detect_ats(url: str) -> str:
     if "weworkremotely.com"  in url: return "WWR"
     if "remotive.com"        in url: return "Remotive"
     if "himalayas.app"       in url: return "Himalayas"
+    if "workable.com"        in url: return "Workable"
     return "Outro"
 
 # ── Extração com Claude (opcional) ───────────────────────────────────────────
@@ -129,7 +136,7 @@ Retorne um JSON array. Cada item deve ter:
 - "company": nome da empresa
 - "role": título do cargo
 - "url": URL exata da vaga
-- "ats": plataforma ATS (Lever / Ashby / Greenhouse / SmartRecruiters / WWR / Remotive / Himalayas / Outro)
+- "ats": plataforma ATS (Lever / Ashby / Greenhouse / SmartRecruiters / WWR / Remotive / Himalayas / Workable / Outro)
 - "latam_friendly": true se menciona LATAM, Brazil, remote-anywhere, ou não restringe a US/EU
 
 Inclua SOMENTE vagas de PM (Product Manager, Product Owner, Head of Product). Exclua engineering, design, marketing, etc.
@@ -253,7 +260,7 @@ def extract_vagas(raw_results: list[dict]) -> list[dict]:
 ATS_EMOJI = {
     "Lever": "🔷", "Ashby": "🔶", "Greenhouse": "🟢",
     "SmartRecruiters": "🔴", "WWR": "🟡",
-    "Remotive": "⚪", "Himalayas": "⚪", "Outro": "⚫",
+    "Remotive": "⚪", "Himalayas": "⚪", "Workable": "⚫", "Outro": "⚫",
 }
 ATS_LABEL = {
     "Ashby": "Ashby HQ", "WWR": "We Work Remotely",
@@ -267,6 +274,7 @@ def group_by_ats(vagas):
         elif "Greenhouse" in ats: ats = "Greenhouse"
         elif "Smart" in ats: ats = "SmartRecruiters"
         elif "WeWork" in ats or "We Work" in ats or ats == "WWR": ats = "WWR"
+        elif "Workable" in ats: ats = "Workable"
         groups.setdefault(ats, []).append(v)
     return groups
 
@@ -282,7 +290,7 @@ def generate_markdown(vagas, prev_count) -> str:
     lines = [
         f"# 🆕 Vagas PM Internacionais – {now}",
         "",
-        f"> **Execução automática** | Busca em ATS internacionais (Lever, Ashby, Greenhouse, SmartRecruiters, WWR, Remotive)",
+        f"> **Execução automática** | Busca em ATS internacionais (Lever, Ashby, Greenhouse, SmartRecruiters, WWR, Remotive, Workable)",
         f"> **Histórico:** {prev_count} vagas anteriores ignoradas | **Novas encontradas:** {len(vagas)}",
         "",
         "---",
@@ -294,7 +302,7 @@ def generate_markdown(vagas, prev_count) -> str:
     if not vagas:
         lines.append("*Nenhuma vaga nova encontrada nesta execução.*")
     else:
-        ATS_ORDER = ["Lever", "Ashby", "Greenhouse", "SmartRecruiters", "WWR", "Remotive", "Himalayas", "Outro"]
+        ATS_ORDER = ["Lever", "Ashby", "Greenhouse", "SmartRecruiters", "WWR", "Remotive", "Himalayas", "Workable", "Outro"]
         for ats in ATS_ORDER:
             bucket = groups.get(ats, [])
             if not bucket:
@@ -384,7 +392,19 @@ def main():
     print("🤖 Extraindo vagas estruturadas...", flush=True)
     all_vagas = extract_vagas(raw)
 
-    new_vagas = [v for v in all_vagas if v.get("url") and v["url"] not in history]
+    normalized_vagas = []
+    for v in all_vagas:
+        url = normalize_url(v.get("url", ""))
+        if not url:
+            continue
+        if not is_specific_job_url(url):
+            print(f"    ⏭️  URL não é vaga específica: {url[:100]}", flush=True)
+            continue
+        v["url"] = url
+        normalized_vagas.append(v)
+
+    normalized_history = {normalize_url(u) for u in history}
+    new_vagas = [v for v in normalized_vagas if v["url"] not in normalized_history]
     seen_urls: set = set()
     deduped: list = []
     for v in new_vagas:

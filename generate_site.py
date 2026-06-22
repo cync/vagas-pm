@@ -21,9 +21,9 @@ _LATAM_KEYWORDS  = {'LATAM','LATIN AMERICA','BRASIL','BRAZIL','SOUTH AMERICA',
 _EUROPE_KEYWORDS = {'EUROPA','EUROPE','EUROPEAN','EMEA','UK','GERMANY','FRANCE',
                     'SPAIN','NETHERLANDS','CET','CENTRAL EUROPEAN'}
 
-def _infer_region(role):
+def _infer_region(*parts):
     """Fallback: detect region from job title when no explicit section header is present."""
-    r = role.upper()
+    r = " ".join(p for p in parts if p).upper()
     if any(k in r for k in _LATAM_KEYWORDS):
         return "latam"
     if any(k in r for k in _EUROPE_KEYWORDS):
@@ -65,7 +65,7 @@ def parse_md_file(filepath, prefix="vagas_pm"):
             jobs.append({"company": rm.group(1).strip(), "role": role,
                          "url": url, "ats": current_ats,
                          "date": date_str, "exec": exec_n, "file": filepath.name,
-                         "region": current_region or _infer_region(role)})
+                         "region": current_region or _infer_region(rm.group(1).strip(), role)})
             continue
         # Format B: | Company | Role | [Aplicar/Apply/Ver](url) | (no bold)
         rm2 = re.match(r'\|\s*([^|*\[\]#<>]+?)\s*\|\s*([^|]+?)\s*\|\s*\[(?:Aplicar|Apply|Ver vaga|Ver)\]\((.+?)\)', line)
@@ -77,7 +77,7 @@ def parse_md_file(filepath, prefix="vagas_pm"):
                 jobs.append({"company": co, "role": role,
                              "url": url, "ats": current_ats,
                              "date": date_str, "exec": exec_n, "file": filepath.name,
-                             "region": current_region or _infer_region(role)})
+                             "region": current_region or _infer_region(co, role)})
     return {"date": date_str, "exec": exec_n, "file": filepath.name, "novas": novas, "jobs": jobs}
 
 runs = [r for f in _collect_files("vagas_pm_*.md") if (r := parse_md_file(f, "vagas_pm"))]
@@ -169,22 +169,26 @@ for run in uiux_runs:
         uiux_jobs.append(j)
 
 today      = date.today()
+today_iso  = today.isoformat()
 this_week  = today - timedelta(days=today.weekday())
 last_week  = this_week - timedelta(weeks=1)
 
 latam_jobs  = [j for j in all_jobs if j.get("region") == "latam"]
 europe_jobs = [j for j in all_jobs if j.get("region") == "europe"]
 latest_run  = runs[-1] if runs else None
-latest_latam_count  = sum(1 for j in (latest_run["jobs"] if latest_run else []) if j.get("region") == "latam")
-latest_europe_count = sum(1 for j in (latest_run["jobs"] if latest_run else []) if j.get("region") == "europe")
+today_runs  = [r for r in runs if r.get("date") == today_iso]
+today_pm_jobs = [j for r in today_runs for j in r["jobs"]]
+latest_latam_count  = sum(1 for j in today_pm_jobs if j.get("region") == "latam")
+latest_europe_count = sum(1 for j in today_pm_jobs if j.get("region") == "europe")
 
 total_jobs        = len(all_jobs)
 total_latam       = len(latam_jobs)
 total_europe      = len(europe_jobs)
-latest_count      = runs[-1]["novas"] if runs else 0
+latest_count      = len(today_pm_jobs)
 total_runs        = len(runs)
 total_uiux        = len(uiux_jobs)
-latest_uiux_count = uiux_runs[-1]["novas"] if uiux_runs else 0
+today_uiux_jobs   = [j for r in uiux_runs if r.get("date") == today_iso for j in r["jobs"]]
+latest_uiux_count = len(today_uiux_jobs)
 from datetime import timezone, timedelta as _td
 _BRT = timezone(_td(hours=-3))
 now_str        = datetime.now(_BRT).strftime("%d %b %Y · %H:%M")
