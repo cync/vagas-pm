@@ -96,12 +96,4 @@
 
 ---
 
-## 📝 Notas da Execução
-
-- **Total de novas vagas encontradas nesta execução:** 27
-- **Novas — LATAM/Brasil específicas:** 6 ✅ (Clara, dLocal Compliance KYC, Binance LATAM, Apply Digital, Remote Talent LATAM x2)
-- **Novas — remote global elegíveis:** 19 ✅
-- **Novas — com restrição / a verificar:** 2 ⚠️
-- **Expiradas/não elegíveis:** 2 ❌
-- **Destaque da rodada: Deel com 4 vagas abertas simultâneas + Remote.com com 4 novos cargos além do já mapeado**
-- **Boards consultados:** Lever, Ashby, Greenhouse, Workable, Breezy.hr, SmartRecruiters, WeWorkRemotely, RemoteOK
+## 📝 Notas da Execu

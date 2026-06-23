@@ -284,7 +284,4 @@ class BrokenCache:
     def prune_stale(self, live_urls: set[str]):
         """Remove entries that no longer appear in any .md file."""
         normalized_live = {normalize_url(u) for u in live_urls}
-        self._ok &= normalized_live
-        self._checked_at = {
-            u: v for u, v in self._checked_at.items() if u in normalized_live
-        }
+        self._ok &= no
