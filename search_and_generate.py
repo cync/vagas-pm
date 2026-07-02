@@ -1,37 +1,48 @@
 #!/usr/bin/env python3
 """
-Pipeline autônomo: busca vagas PM via Tavily + extrai com Claude API (fallback: regex) + gera site.
+Pipeline autônomo: busca vagas PM direto em ATS públicos + filtra localmente + gera site.
 """
-import os, json, re, sys
+import html, os, json, re, sys
+import urllib.parse
+import urllib.request
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import date, datetime, timezone, timedelta
 from pathlib import Path
-
-from tavily import TavilyClient
 
 from link_checker import (
     BrokenCache, check_urls_parallel, is_dead_url, is_specific_job_url,
     normalize_url,
 )
 
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+
 # ── Configurações ────────────────────────────────────────────────────────────
-TAVILY_API_KEY    = os.environ["TAVILY_API_KEY"]
-ANTHROPIC_API_KEY = os.environ.get("ANTHROPIC_API_KEY", "")
+ANTHROPIC_API_KEY = ""
 
 SCRIPT_DIR   = Path(__file__).parent
 VAGAS_DIR    = SCRIPT_DIR / "vagas"
 HISTORY_FILE = VAGAS_DIR / "url_history.json"
 BROKEN_FILE  = SCRIPT_DIR / "broken_links.json"
+SOURCES_FILE = SCRIPT_DIR / "direct_sources.json"
 BRT = timezone(timedelta(hours=-3))
 
 TODAY = datetime.now(BRT).date().isoformat()
 
-tavily = TavilyClient(api_key=TAVILY_API_KEY)
-
 # ── Histórico ─────────────────────────────────────────────────────────────────
 def load_history() -> set:
+    history = set()
     if HISTORY_FILE.exists():
-        return set(json.loads(HISTORY_FILE.read_text(encoding="utf-8")))
-    return set()
+        history |= set(json.loads(HISTORY_FILE.read_text(encoding="utf-8")))
+    url_re = re.compile(r'\[(?:Ver vaga|Aplicar|Apply|Verificar|Ver)\]\((https?://[^)]+)\)')
+    for md_file in VAGAS_DIR.glob("vagas_*.md"):
+        try:
+            text = md_file.read_text(encoding="utf-8", errors="replace")
+            history.update(normalize_url(u) for u in url_re.findall(text))
+        except Exception:
+            pass
+    return history
 
 def save_history(history: set):
     HISTORY_FILE.write_text(
@@ -81,38 +92,180 @@ def filter_live_vagas(vagas: list[dict]) -> list[dict]:
     return live
 
 # ── Buscas ────────────────────────────────────────────────────────────────────
-SEARCHES = [
-    ("product manager remote LATAM Brazil",         ["jobs.lever.co"],                                   20),
-    ("product owner remote LATAM Brazil",           ["jobs.lever.co"],                                   10),
-    ("product manager remote LATAM Brazil",         ["jobs.ashbyhq.com"],                                20),
-    ("product owner remote LATAM Brazil",           ["jobs.ashbyhq.com"],                                10),
-    ("product manager remote LATAM Brazil",         ["boards.greenhouse.io","job-boards.greenhouse.io"], 20),
-    ("product owner remote LATAM Brazil",           ["boards.greenhouse.io","job-boards.greenhouse.io"], 10),
-    ("product manager remote LATAM",                ["jobs.smartrecruiters.com"],                        10),
-    ("product manager remote LATAM Brazil",         ["weworkremotely.com"],                              10),
-    ("product manager remote LATAM",                ["remotive.com","himalayas.app"],                    15),
-    ("product manager remote LATAM Brazil",         ["apply.workable.com"],                              10),
-    ("product manager remote worldwide OR global",  ["jobs.lever.co","jobs.ashbyhq.com","job-boards.greenhouse.io"], 20),
-]
+HTTP_HEADERS = {
+    "User-Agent": "Mozilla/5.0 vagas-pm-bot/2.0 (+https://cync.github.io/vagas-pm/)",
+    "Accept": "application/json,text/html;q=0.8,*/*;q=0.5",
+}
 
-def search_all() -> list[dict]:
-    results = []
-    for query, domains, n in SEARCHES:
-        try:
-            resp = tavily.search(
-                query=query,
-                include_domains=domains,
-                max_results=n,
-                search_depth="advanced",
-                time_range="week",
-            )
-            hits = resp.get("results", [])
-            for h in hits:
-                h["_domains"] = domains
-            results.extend(hits)
-            print(f"  [{domains[0]}] {len(hits)} resultados", flush=True)
-        except Exception as e:
-            print(f"  ERRO [{domains[0]}]: {e}", flush=True)
+REMOTE_RE = re.compile(
+    r"\b(remote|remoto|anywhere|worldwide|global|distributed|work from anywhere|wfa)\b",
+    re.I,
+)
+REGION_RE = re.compile(
+    r"\b(latam|latin america|brazil|brasil|south america|argentina|colombia|mexico|"
+    r"peru|chile|portugal|emea|europe|european|apac|worldwide|global|anywhere)\b",
+    re.I,
+)
+US_ONLY_RE = re.compile(
+    r"\b(us only|u\.s\. only|united states only|usa only|must be based in the united states)\b",
+    re.I,
+)
+
+def _strip_html(value: str) -> str:
+    value = re.sub(r"<(script|style).*?</\1>", " ", value or "", flags=re.I | re.S)
+    value = re.sub(r"<[^>]+>", " ", value)
+    value = html.unescape(value)
+    return re.sub(r"\s+", " ", value).strip()
+
+def _get_json(url: str) -> dict | list:
+    req = urllib.request.Request(url, headers=HTTP_HEADERS)
+    with urllib.request.urlopen(req, timeout=25) as resp:
+        raw = resp.read().decode("utf-8", errors="replace")
+    return json.loads(raw)
+
+def load_sources() -> list[dict]:
+    if not SOURCES_FILE.exists():
+        return []
+    data = json.loads(SOURCES_FILE.read_text(encoding="utf-8"))
+    return [s for s in data if s.get("ats") and (s.get("board") or s.get("category"))]
+
+def _job(company: str, role: str, url: str, ats: str, content: str = "", location: str = "") -> dict:
+    text = " ".join(p for p in [role, location, content] if p)
+    return {
+        "title": role,
+        "company": company,
+        "role": role,
+        "url": normalize_url(url),
+        "ats": ats,
+        "content": _strip_html(text),
+    }
+
+def _accept_direct_job(job: dict) -> bool:
+    text = f"{job.get('title','')} {job.get('content','')}"
+    if not PM_KEYWORDS.search(text):
+        return False
+    if EXCLUDE_KEYWORDS.search(job.get("title", "")):
+        return False
+    if US_ONLY_RE.search(text):
+        return False
+    return bool(REMOTE_RE.search(text) or REGION_RE.search(text))
+
+def _fetch_greenhouse(source: dict) -> list[dict]:
+    board = source["board"]
+    url = f"https://boards-api.greenhouse.io/v1/boards/{board}/jobs?content=true"
+    data = _get_json(url)
+    jobs = []
+    for item in data.get("jobs", []):
+        location = (item.get("location") or {}).get("name", "")
+        absolute_url = item.get("absolute_url") or f"https://boards.greenhouse.io/{board}/jobs/{item.get('id')}"
+        jobs.append(_job(
+            source.get("company") or board,
+            item.get("title", ""),
+            absolute_url,
+            "Greenhouse",
+            item.get("content", ""),
+            location,
+        ))
+    return jobs
+
+def _fetch_lever(source: dict) -> list[dict]:
+    board = source["board"]
+    url = f"https://api.lever.co/v0/postings/{board}?mode=json"
+    data = _get_json(url)
+    jobs = []
+    for item in data if isinstance(data, list) else []:
+        categories = item.get("categories") or {}
+        location = " ".join(str(v) for v in categories.values() if v)
+        content = " ".join(
+            _strip_html(section.get("content", ""))
+            for section in item.get("lists", [])
+            if isinstance(section, dict)
+        )
+        jobs.append(_job(
+            source.get("company") or board,
+            item.get("text", ""),
+            item.get("hostedUrl") or item.get("applyUrl") or "",
+            "Lever",
+            content,
+            location,
+        ))
+    return jobs
+
+def _fetch_ashby(source: dict) -> list[dict]:
+    board = urllib.parse.quote(source["board"], safe="")
+    url = f"https://api.ashbyhq.com/posting-api/job-board/{board}?ashby_source=job_board&limit=500"
+    data = _get_json(url)
+    jobs = []
+    for item in data.get("jobs", []):
+        location = item.get("locationName") or item.get("location", "")
+        jobs.append(_job(
+            source.get("company") or source["board"],
+            item.get("title", ""),
+            item.get("jobUrl") or item.get("hostedUrl") or f"https://jobs.ashbyhq.com/{source['board']}/{item.get('id')}",
+            "Ashby",
+            item.get("descriptionHtml") or item.get("descriptionPlain") or "",
+            location,
+        ))
+    return jobs
+
+def _fetch_remotive(source: dict) -> list[dict]:
+    category = source.get("category", "")
+    url = "https://remotive.com/api/remote-jobs"
+    if category:
+        url += f"?category={urllib.parse.quote(category)}"
+    data = _get_json(url)
+    jobs = []
+    for item in data.get("jobs", []):
+        jobs.append(_job(
+            item.get("company_name") or "Remotive",
+            item.get("title", ""),
+            item.get("url", ""),
+            "Remotive",
+            item.get("description", ""),
+            item.get("candidate_required_location", ""),
+        ))
+    return jobs
+
+FETCHERS = {
+    "greenhouse": _fetch_greenhouse,
+    "lever": _fetch_lever,
+    "ashby": _fetch_ashby,
+    "remotive": _fetch_remotive,
+}
+
+def _fetch_source(source: dict) -> tuple[dict, list[dict], str | None]:
+    fetcher = FETCHERS.get(source.get("ats", "").lower())
+    if not fetcher:
+        return source, [], f"ATS sem fetcher: {source.get('ats')}"
+    try:
+        jobs = [j for j in fetcher(source) if j.get("url") and _accept_direct_job(j)]
+        return source, jobs, None
+    except Exception as e:
+        return source, [], f"{type(e).__name__}: {e}"
+
+def search_all() -> list[dict] | None:
+    sources = load_sources()
+    if not sources:
+        print("  direct_sources.json vazio ou ausente; mantendo site existente.", flush=True)
+        return None
+
+    results: list[dict] = []
+    failures = 0
+    with ThreadPoolExecutor(max_workers=min(8, len(sources))) as pool:
+        futures = {pool.submit(_fetch_source, s): s for s in sources}
+        for future in as_completed(futures):
+            source, jobs, error = future.result()
+            label = source.get("company") or source.get("board") or source.get("category")
+            if error:
+                failures += 1
+                print(f"  ERRO [{source.get('ats')}:{label}] {error}", flush=True)
+                continue
+            results.extend(jobs)
+            print(f"  [{source.get('ats')}:{label}] {len(jobs)} vagas candidatas", flush=True)
+
+    if failures == len(sources):
+        print("  Todas as fontes diretas falharam; mantendo site existente.", flush=True)
+        return None
     return results
 
 # ── Detecção ATS pela URL ──────────────────────────────────────────────────────
@@ -222,10 +375,10 @@ def extract_with_regex(raw_results: list[dict]) -> list[dict]:
             print(f"    ⏭️  URL não é vaga específica: {url[:80]}", flush=True)
             continue
 
-        company = extract_company_from_title(title, url)
-        ats     = detect_ats(url)
+        company = r.get("company") or extract_company_from_title(title, url)
+        ats     = r.get("ats") or detect_ats(url)
 
-        role = title
+        role = r.get("role") or title
         for sep in [" – ", " - ", " | ", " at "]:
             if sep in title:
                 parts = title.split(sep)
@@ -244,16 +397,9 @@ def extract_with_regex(raw_results: list[dict]) -> list[dict]:
         })
     return vagas
 
-# ── Extração (Claude se disponível, senão regex) ──────────────────────────────
 def extract_vagas(raw_results: list[dict]) -> list[dict]:
-    print("  Tentando Claude API...", flush=True)
-    result = extract_with_claude(raw_results)
-    if result is not None:
-        print(f"  ✅ Claude extraiu {len(result)} vagas", flush=True)
-        return result
-    print("  🔄 Fallback: extração por regex", flush=True)
     result = extract_with_regex(raw_results)
-    print(f"  ✅ Regex extraiu {len(result)} vagas", flush=True)
+    print(f"  ✅ Filtro local manteve {len(result)} vagas", flush=True)
     return result
 
 # ── Markdown ──────────────────────────────────────────────────────────────────
@@ -343,6 +489,8 @@ def generate_markdown(vagas, prev_count) -> str:
 # ── Main ──────────────────────────────────────────────────────────────────────
 def _revalidate_historical_urls():
     """Spot-check a sample of historical URLs from existing .md files."""
+    if os.environ.get("REVALIDATE_HISTORICAL_LINKS", "").lower() not in {"1", "true", "yes"}:
+        return
     import random as _random
 
     url_re = re.compile(r'\[(?:Ver vaga|Aplicar|Apply)\]\((https?://[^)]+)\)')
@@ -383,10 +531,26 @@ def main():
 
     print(f"📂 Histórico: {prev_count} URLs conhecidas", flush=True)
 
-    _revalidate_historical_urls()
-
     print("🔍 Buscando vagas...", flush=True)
     raw = search_all()
+    if raw is None:
+        print("🌐 Regenerando site sem criar nova execucao...", flush=True)
+        import subprocess
+        result = subprocess.run(
+            [sys.executable, str(SCRIPT_DIR / "generate_site.py")],
+            capture_output=True, text=True
+        )
+        if result.stdout:
+            print(result.stdout, flush=True)
+        if result.returncode != 0:
+            print(f"⚠️  generate_site.py retornou código {result.returncode}", flush=True)
+            if result.stderr:
+                print(result.stderr, flush=True)
+            return result.returncode
+        print("✅ Concluído — busca indisponivel, site existente regenerado", flush=True)
+        return 0
+
+    _revalidate_historical_urls()
     print(f"📋 {len(raw)} resultados brutos obtidos", flush=True)
 
     print("🤖 Extraindo vagas estruturadas...", flush=True)
@@ -418,6 +582,26 @@ def main():
     if new_vagas:
         print("🔗 Validando links...", flush=True)
         new_vagas = filter_live_vagas(new_vagas)
+        print(f"🆕 {len(new_vagas)} vagas novas com links válidos", flush=True)
+
+    if not new_vagas:
+        save_history(history)
+        print(f"📚 Histórico atualizado: {len(history)} URLs", flush=True)
+        print("🌐 Regenerando site sem criar execucao vazia...", flush=True)
+        import subprocess
+        result = subprocess.run(
+            [sys.executable, str(SCRIPT_DIR / "generate_site.py")],
+            capture_output=True, text=True
+        )
+        if result.stdout:
+            print(result.stdout, flush=True)
+        if result.returncode != 0:
+            print(f"⚠️  generate_site.py retornou código {result.returncode}", flush=True)
+            if result.stderr:
+                print(result.stderr, flush=True)
+            return result.returncode
+        print("✅ Concluído — nenhuma vaga nova encontrada", flush=True)
+        return 0
 
     base = VAGAS_DIR / f"vagas_pm_{TODAY}.md"
     if base.exists():
@@ -454,4 +638,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main() or 0)

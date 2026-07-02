@@ -129,7 +129,8 @@ def _is_dead_greenhouse_api(url: str) -> bool:
             data = json.loads(resp.read().decode())
             return not data.get("id")
     except urllib.error.HTTPError as e:
-        return e.code in (404, 410, 403, 422)
+        # 403/422 can be bot protection or ATS edge behavior, not proof that the job is gone.
+        return e.code in (404, 410)
     except Exception:
         pass  # fall through to HTTP check
     return False
@@ -147,7 +148,7 @@ def _is_dead_http(url: str) -> bool:
             body = resp.read(32000).decode("utf-8", errors="ignore").lower()
             return any(p in body for p in DEAD_PHRASES)
     except urllib.error.HTTPError as e:
-        return e.code in (404, 410, 403)
+        return e.code in (404, 410)
     except Exception:
         return False  # network error = assume alive
 
@@ -284,4 +285,7 @@ class BrokenCache:
     def prune_stale(self, live_urls: set[str]):
         """Remove entries that no longer appear in any .md file."""
         normalized_live = {normalize_url(u) for u in live_urls}
-        self._ok &= no
+        self._ok &= normalized_live
+        self._checked_at = {
+            u: v for u, v in self._checked_at.items() if u in normalized_live
+        }

@@ -114,7 +114,10 @@ def git(*args, check=False):
 
 def git_deploy():
     log("Sincronizando com remote (pull --rebase --autostash)...")
-    git("pull", "--rebase", "--autostash")
+    pull = git("pull", "--rebase", "--autostash")
+    if pull.returncode != 0:
+        log(f"ERRO no pull --rebase:\n{pull.stderr.strip()}")
+        sys.exit(1)
 
     log("Staged changes...")
     git("add", "-A")
@@ -126,17 +129,12 @@ def git_deploy():
         return
 
     log("Fazendo push...")
-    push = git("push", "--force-with-lease")
+    push = git("push")
     if push.returncode == 0:
         log("Push OK.")
     else:
-        log(f"Push falhou ({push.stderr.strip()}) — tentando force push...")
-        fallback = git("push", "--force")
-        if fallback.returncode == 0:
-            log("Force push OK.")
-        else:
-            log(f"ERRO no push: {fallback.stderr.strip()}")
-            sys.exit(1)
+        log(f"ERRO no push: {push.stderr.strip()}")
+        sys.exit(1)
 
 
 # ── Main ─────────────────────────────────────────────────────────────────────

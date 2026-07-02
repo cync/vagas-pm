@@ -21,9 +21,7 @@ O site exibe todas as execuções históricas, organizadas por data, com filtros
 | Lever | dLocal, Binance, Bluelight, 3Pillar |
 | Ashby HQ | Hubstaff, Owner.com, Quora, Hopper |
 | Greenhouse | Coinbase, Remote.com, Cloudbeds, QuintoAndar |
-| SmartRecruiters | Wise, Canva |
-| We Work Remotely | Vagas abertas globalmente |
-| Remotive / Himalayas | Vagas LATAM-friendly |
+| Remotive | Vagas remotas por categoria |
 
 ---
 
@@ -36,9 +34,9 @@ GitHub Actions (cron 06:00 e 15:00 BRT)
        ↓
 search_and_generate.py
        ↓
-Tavily API — busca nos ATS (Lever, Ashby, Greenhouse, SmartRecruiters, WWR, Remotive)
+APIs públicas dos ATS — Greenhouse, Lever, Ashby e Remotive
        ↓
-Extração de vagas (Claude Haiku API, ou regex como fallback gratuito)
+Filtro local determinístico de cargo/região/remoto
        ↓
 Filtra URLs já vistas em vagas/url_history.json
        ↓
@@ -72,8 +70,9 @@ vagas-pm/
 │   └── url_history.json        ← histórico de URLs para deduplicação
 ├── index.html                  ← site gerado (GitHub Pages)
 ├── generate_site.py            ← lê os .md e gera o HTML
-├── search_and_generate.py      ← pipeline principal (busca + extração + geração)
-├── requirements.txt            ← dependências Python (tavily-python, anthropic)
+├── search_and_generate.py      ← pipeline principal (coleta direta + filtro + geração)
+├── direct_sources.json         ← fontes ATS monitoradas
+├── requirements.txt            ← dependências Python
 ├── broken_links.json           ← URLs inválidas detectadas
 └── README.md                   ← este arquivo
 ```
@@ -84,14 +83,9 @@ vagas-pm/
 
 ### 1. Secrets necessários
 
-Acesse **Settings → Secrets → Actions** no repositório e adicione:
+Nenhum secret é necessário para buscar vagas. As fontes atuais usam APIs públicas dos ATS.
 
-| Secret | Onde obter | Custo |
-|---|---|---|
-| `TAVILY_API_KEY` | [tavily.com](https://tavily.com) | Gratuito (1.000 buscas/mês) |
-| `ANTHROPIC_API_KEY` | [console.anthropic.com](https://console.anthropic.com) | Opcional — ~US$0,01/execução com Haiku |
-
-> **Sem `ANTHROPIC_API_KEY`**: o script usa extração por regex automaticamente, sem custo.
+Para notificações push, configure `ONESIGNAL_APP_ID` e `ONESIGNAL_REST_API_KEY` em **Settings → Secrets → Actions**.
 
 ### 2. GitHub Pages
 
@@ -122,8 +116,8 @@ git push
 
 | Componente | Tecnologia |
 |---|---|
-| Busca | Tavily API (`search_depth=advanced`, `include_domains`) |
-| Extração | Claude Haiku (`claude-haiku-4-5-20251001`) / regex fallback |
+| Busca | APIs públicas diretas dos ATS (`direct_sources.json`) |
+| Extração | Filtro local determinístico |
 | Geração HTML | Python puro (sem frameworks) |
 | Hospedagem | GitHub Pages (branch `main`) |
 | Automação | GitHub Actions (cron) |
