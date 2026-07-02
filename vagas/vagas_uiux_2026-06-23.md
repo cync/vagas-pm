@@ -38,4 +38,4 @@
 
 ---
 
-*Gerado automatic
+*Gerado automaticamente via busca em ATS internacionais*

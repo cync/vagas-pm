@@ -69,4 +69,4 @@ if __name__ == "__main__":
     cfg      = load_config()
     count    = int(sys.argv[1]) if len(sys.argv) > 1 else 0
     companies = sys.argv[2] if len(sys.argv) > 2 else ""
-    s
+    send_notification(cfg["app_id"], cfg["rest_api_key"], count, companies)

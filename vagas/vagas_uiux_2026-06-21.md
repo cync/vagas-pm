@@ -31,4 +31,4 @@
 
 ---
 
-*Gerado automaticamente 
+*Gerado automaticamente via busca em ATS internacionais*

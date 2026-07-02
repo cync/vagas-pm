@@ -88,4 +88,8 @@
 | 36 | Workana | Senior PM | [Ver](https://weworkremotely.com/remote-jobs/workana-senior-product-manager) |
 | 37 | Search Atlas | Software PM | [Ver](https://weworkremotely.com/remote-jobs/search-atlas-advanced-seo-software-software-product-manager) |
 | 38 | Workwize | PM - B2B SaaS | [Ver](https://weworkremotely.com/remote-jobs/workwize-product-manager-b2b-saas) |
-| 39 | Remote Wor
+| 39 | Remote World | Product Manager | [Ver](https://remoteworld.teamtailor.com/jobs/7629867-product-manager) |
+| 40 | Proto Global | Product Manager | [Ver](https://protoglobal.bamboohr.com/jobs/view.php?id=95) |
+| 41 | BEES (AB InBev) | PM \| Professional Services | [Ver](https://job-boards.greenhouse.io/bees/jobs/8512590002) |
+| 42 | Nearsure | Senior PM | [Ver](https://boards.greenhouse.io/nearsure/jobs/4667367007) |
+| 43 | Affirm | Senior PM - Digital Wallets & Agentic Commerce | [Ver](https://weworkremotely.com/remote-jobs/affirm-senior-product-manager-digital-wallets-agentic-commerce) |
