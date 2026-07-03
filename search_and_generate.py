@@ -10,7 +10,7 @@ from datetime import date, datetime, timezone, timedelta
 from pathlib import Path
 
 from link_checker import (
-    BrokenCache, check_urls_parallel, is_dead_url, is_specific_job_url,
+    BrokenCache, check_urls_parallel_status, is_specific_job_url,
     normalize_url,
 )
 
@@ -52,7 +52,7 @@ def save_history(history: set):
 
 # ── Validação de links ─────────────────────────────────────────────────────────
 def filter_live_vagas(vagas: list[dict]) -> list[dict]:
-    """Remove vagas with dead/expired links (parallel check)."""
+    """Mantem apenas vagas com link confirmado como aberto."""
     from datetime import date as _date
     cache = BrokenCache(BROKEN_FILE)
     today_str = _date.today().isoformat()
@@ -64,19 +64,24 @@ def filter_live_vagas(vagas: list[dict]) -> list[dict]:
 
     print(f"  🔍 Validando {len(to_check)} links novos...", flush=True)
     urls_to_check = [normalize_url(v["url"]) for v in to_check if v.get("url")]
-    results = check_urls_parallel(urls_to_check)
+    results = check_urls_parallel_status(urls_to_check)
 
     live = []
     newly_broken = set()
+    not_confirmed = set()
     newly_alive = set()
     for v in to_check:
         nurl = normalize_url(v["url"])
-        if results.get(nurl, False):
+        status = results.get(nurl, "unknown")
+        if status == "dead":
             newly_broken.add(nurl)
             print(f"    💀 {v.get('company','?')} — {nurl}", flush=True)
-        else:
+        elif status == "open":
             live.append(v)
             newly_alive.add(nurl)
+        else:
+            not_confirmed.add(nurl)
+            print(f"    ⚠️  sem confirmacao de vaga aberta: {v.get('company','?')} — {nurl}", flush=True)
 
     if newly_broken:
         cache.add_broken_batch(newly_broken)
@@ -84,8 +89,13 @@ def filter_live_vagas(vagas: list[dict]) -> list[dict]:
         cache.add_ok_batch(newly_alive, today_str)
     cache.save()
 
-    if newly_broken:
-        print(f"  ✅ {len(live)} links vivos | 💀 {len(newly_broken)} removidos", flush=True)
+    if newly_broken or not_confirmed:
+        parts = [f"✅ {len(live)} links confirmados"]
+        if newly_broken:
+            parts.append(f"💀 {len(newly_broken)} mortos")
+        if not_confirmed:
+            parts.append(f"⚠️  {len(not_confirmed)} nao confirmados")
+        print(" | ".join(parts), flush=True)
     else:
         print(f"  ✅ Todos os {len(live)} links válidos", flush=True)
 
@@ -510,8 +520,9 @@ def _revalidate_historical_urls():
     sample = _random.sample(candidates, min(30, len(candidates)))
     print(f"  🔁 Re-validando {len(sample)} URLs históricas...", flush=True)
 
-    results = check_urls_parallel(sample)
-    newly_broken = {u for u, dead in results.items() if dead}
+    results = check_urls_parallel_status(sample)
+    newly_broken = {u for u, status in results.items() if status == "dead"}
+    not_confirmed = {u for u, status in results.items() if status == "unknown"}
 
     if newly_broken:
         for u in newly_broken:
@@ -519,6 +530,8 @@ def _revalidate_historical_urls():
         cache.add_broken_batch(newly_broken)
         cache.save()
         print(f"  ✅ {len(newly_broken)} links históricos mortos adicionados ao cache", flush=True)
+    elif not_confirmed:
+        print(f"  ⚠️  {len(not_confirmed)} links históricos sem confirmação positiva", flush=True)
     else:
         print(f"  ✅ Todos os {len(sample)} links históricos válidos", flush=True)
 

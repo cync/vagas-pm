@@ -4,11 +4,13 @@ link_checker.py -- Módulo compartilhado de validação de links de vagas.
 Usado por: generate_site.py, search_and_generate.py, check_links.py, clean_ashby.py.
 
 Fornece:
-  - is_dead_url(url)         -> bool (checagem individual)
-  - check_urls_parallel(urls) -> dict {url: bool} (checagem em lote)
-  - normalize_url(url)        -> str  (normalização de URL)
-  - is_specific_job_url(url)  -> bool (rejeita páginas de empresa)
-  - BrokenCache               -> classe para ler/escritar broken_links.json
+  - get_url_status(url)        -> "open" | "dead" | "unknown"
+  - is_dead_url(url)           -> bool (checagem individual)
+  - check_urls_parallel_status(urls) -> dict {url: status} (checagem em lote)
+  - check_urls_parallel(urls)  -> dict {url: bool} (compatibilidade)
+  - normalize_url(url)         -> str  (normalização de URL)
+  - is_specific_job_url(url)   -> bool (rejeita páginas de empresa)
+  - BrokenCache                -> classe para ler/escritar broken_links.json
 """
 import json
 import re
@@ -27,7 +29,10 @@ HEADERS = {
         "Chrome/124.0.0.0 Safari/537.36"
     ),
     "Accept": "text/html,application/xhtml+xml,*/*;q=0.8",
+    "Accept-Language": "en-US,en;q=0.9",
 }
+
+VALIDATION_POLICY_VERSION = 2
 
 DEAD_PHRASES = [
     "the job you requested was not found",
@@ -69,6 +74,31 @@ _ASHBY_UUID_RE = re.compile(
     r"[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}", re.I
 )
 _GH_JOB_RE = re.compile(r"greenhouse\.io/([^/]+)/jobs/(\d+)", re.I)
+_LEVER_JOB_RE = re.compile(r"lever\.co/([^/]+)/([A-Za-z0-9-]+)", re.I)
+
+POSITIVE_JOB_MARKERS = [
+    '"@type":"jobposting"',
+    '"@type": "jobposting"',
+    "schema.org/jobposting",
+    "apply for this job",
+    "apply for this position",
+    "job description",
+    "employmenttype",
+    "dateposted",
+    "validthrough",
+]
+
+PROVIDER_POSITIVE_MARKERS = {
+    "ashby": ["applicationform", "ashbyhq"],
+    "greenhouse": ["grnhse_app", "opening-header"],
+    "lever": ["posting-categories", "lever-job-container", '"categories"'],
+    "workable": ["apply for this job", "workable"],
+    "teamtailor": ["teamtailor", "department"],
+    "recruitee": ["recruitee", "department", "job description"],
+    "weworkremotely": ["we work remotely", "apply for this position"],
+    "remotive": ["candidate_required_location", "remotive"],
+    "himalayas": ["himalayas", "years of experience"],
+}
 
 
 # ── URL normalization ─────────────────────────────────────────────────────────
@@ -89,15 +119,38 @@ def normalize_url(url: str) -> str:
     return url.rstrip("/")
 
 
+def _detect_provider(url: str) -> str:
+    url = normalize_url(url).lower()
+    if "ashbyhq.com" in url:
+        return "ashby"
+    if "greenhouse.io" in url:
+        return "greenhouse"
+    if "lever.co" in url:
+        return "lever"
+    if "workable.com" in url:
+        return "workable"
+    if "teamtailor.com" in url:
+        return "teamtailor"
+    if "recruitee.com" in url:
+        return "recruitee"
+    if "weworkremotely.com" in url:
+        return "weworkremotely"
+    if "remotive.com" in url:
+        return "remotive"
+    if "himalayas.app" in url:
+        return "himalayas"
+    return "other"
+
+
 # ── Ashby API check ───────────────────────────────────────────────────────────
 
-def _is_dead_ashby(url: str) -> bool:
+def _status_ashby(url: str) -> str:
     uuid_m = _ASHBY_UUID_RE.search(url)
     if not uuid_m:
-        return True  # company page = dead
+        return "dead"
     comp_m = re.search(r"ashbyhq\.com/([^/]+)", url)
     if not comp_m:
-        return True
+        return "dead"
     company_raw = urllib.parse.unquote(comp_m.group(1))
     company = urllib.parse.quote(company_raw, safe="")
     job_id = uuid_m.group(0)
@@ -108,78 +161,148 @@ def _is_dead_ashby(url: str) -> bool:
             data = json.loads(resp.read().decode())
             jobs = data.get("jobs", [])
             if not jobs:
-                return True  # company has no open positions
-            return not any(j.get("id") == job_id for j in jobs)
+                return "dead"
+            return "open" if any(j.get("id") == job_id for j in jobs) else "dead"
+    except urllib.error.HTTPError as e:
+        return "dead" if e.code in (404, 410) else "unknown"
     except Exception:
-        pass  # fall through to HTTP check
-    return False  # API failure = assume alive
+        return "unknown"
 
 
 # ── Greenhouse API check ──────────────────────────────────────────────────────
 
-def _is_dead_greenhouse_api(url: str) -> bool:
+def _status_greenhouse_api(url: str) -> str:
     gh_m = _GH_JOB_RE.search(url)
     if not gh_m:
-        return True  # company page / no job ID = dead
+        return "dead"
     company, job_id = gh_m.group(1), gh_m.group(2)
     api = f"https://boards-api.greenhouse.io/v1/boards/{company}/jobs/{job_id}"
     try:
         req = urllib.request.Request(api, headers=HEADERS)
         with urllib.request.urlopen(req, timeout=10) as resp:
             data = json.loads(resp.read().decode())
-            return not data.get("id")
+            return "open" if data.get("id") else "dead"
     except urllib.error.HTTPError as e:
-        # 403/422 can be bot protection or ATS edge behavior, not proof that the job is gone.
-        return e.code in (404, 410)
+        return "dead" if e.code in (404, 410) else "unknown"
     except Exception:
-        pass  # fall through to HTTP check
-    return False
+        return "unknown"
+
+
+def _status_lever_api(url: str) -> str:
+    lm = _LEVER_JOB_RE.search(url)
+    if not lm:
+        return "dead"
+    company, job_id = lm.group(1), lm.group(2)
+    api = f"https://api.lever.co/v0/postings/{company}/{job_id}?mode=json"
+    try:
+        req = urllib.request.Request(api, headers=HEADERS)
+        with urllib.request.urlopen(req, timeout=10) as resp:
+            data = json.loads(resp.read().decode())
+            return "open" if data.get("id") or data.get("text") else "dead"
+    except urllib.error.HTTPError as e:
+        return "dead" if e.code in (404, 410) else "unknown"
+    except Exception:
+        return "unknown"
 
 
 # ── HTTP body/redirect check ──────────────────────────────────────────────────
 
-def _is_dead_http(url: str) -> bool:
+def _fetch_http(url: str, max_bytes: int = 200_000) -> dict | None:
     try:
         req = urllib.request.Request(url, headers=HEADERS)
         with urllib.request.urlopen(req, timeout=12) as resp:
-            final = resp.geturl().lower()
-            if any(p in final for p in DEAD_URL_PATTERNS):
-                return True
-            body = resp.read(32000).decode("utf-8", errors="ignore").lower()
-            return any(p in body for p in DEAD_PHRASES)
+            return {
+                "status": getattr(resp, "status", 200),
+                "final_url": resp.geturl(),
+                "body": resp.read(max_bytes).decode("utf-8", errors="ignore"),
+            }
     except urllib.error.HTTPError as e:
-        return e.code in (404, 410)
+        body = ""
+        try:
+            body = e.read(max_bytes).decode("utf-8", errors="ignore")
+        except Exception:
+            pass
+        return {
+            "status": e.code,
+            "final_url": getattr(e, "url", url),
+            "body": body,
+        }
     except Exception:
-        return False  # network error = assume alive
+        return None
+
+
+def _body_confirms_open(body_lower: str, provider: str) -> bool:
+    if any(marker in body_lower for marker in POSITIVE_JOB_MARKERS):
+        return True
+    return any(marker in body_lower for marker in PROVIDER_POSITIVE_MARKERS.get(provider, []))
+
+
+def _status_http(url: str) -> str:
+    response = _fetch_http(url)
+    if response is None:
+        return "unknown"
+
+    status = response["status"]
+    final_url = normalize_url(response["final_url"])
+    body_lower = response["body"].lower()
+    provider = _detect_provider(url)
+
+    if status in (404, 410):
+        return "dead"
+    if any(pattern in final_url.lower() for pattern in DEAD_URL_PATTERNS):
+        return "dead"
+    if any(phrase in body_lower for phrase in DEAD_PHRASES):
+        return "dead"
+    if normalize_url(url) != final_url and not is_specific_job_url(final_url):
+        return "dead"
+    if _body_confirms_open(body_lower, provider):
+        return "open"
+    return "unknown"
 
 
 # ── API pública ────────────────────────────────────────────────────────────────
 
+def get_url_status(url: str) -> str:
+    """Retorna o status do link da vaga: open, dead ou unknown.
+    O site deve publicar apenas links com status open."""
+    normalized = normalize_url(url)
+    provider = _detect_provider(normalized)
+
+    if provider == "ashby":
+        status = _status_ashby(normalized)
+        return status if status != "unknown" else _status_http(normalized)
+    if provider == "greenhouse":
+        status = _status_greenhouse_api(normalized)
+        return status if status != "unknown" else _status_http(normalized)
+    if provider == "lever":
+        status = _status_lever_api(normalized)
+        return status if status != "unknown" else _status_http(normalized)
+    return _status_http(normalized)
+
+
 def is_dead_url(url: str) -> bool:
-    """Retorna True se o link da vaga está morto/expirado.
-    Checagem por API (Ashby, Greenhouse) + HTTP body/redirect."""
-    if "ashbyhq.com" in url:
-        return _is_dead_ashby(url)
-    if "greenhouse.io" in url:
-        if _is_dead_greenhouse_api(url):
-            return True
-    return _is_dead_http(url)
+    return get_url_status(url) == "dead"
 
 
-def check_urls_parallel(urls: list[str], max_workers: int = 15) -> dict[str, bool]:
-    """Checa URLs em paralelo. Retorna {url: is_dead}."""
+def check_urls_parallel_status(urls: list[str], max_workers: int = 15) -> dict[str, str]:
+    """Checa URLs em paralelo. Retorna {url: open|dead|unknown}."""
     results = {}
     if not urls:
         return results
     with ThreadPoolExecutor(max_workers=max_workers) as pool:
-        futures = {pool.submit(is_dead_url, u): u for u in urls}
+        futures = {pool.submit(get_url_status, u): u for u in urls}
         for future in as_completed(futures):
             u = futures[future]
             try:
                 results[u] = future.result()
             except Exception:
-                results[u] = False  # assume alive on error
+                results[u] = "unknown"
     return results
+
+
+def check_urls_parallel(urls: list[str], max_workers: int = 15) -> dict[str, bool]:
+    """Compatibilidade: retorna {url: is_dead}."""
+    return {u: status == "dead" for u, status in check_urls_parallel_status(urls, max_workers).items()}
 
 
 def is_specific_job_url(url: str) -> bool:
@@ -216,6 +339,7 @@ class BrokenCache:
         self._broken: set[str] = set()
         self._ok: set[str] = set()
         self._checked_at: dict[str, str] = {}
+        self._validation_policy_version = 0
         self._load()
 
     def _load(self):
@@ -229,6 +353,9 @@ class BrokenCache:
             self._checked_at = {
                 normalize_url(u): v for u, v in data.get("checked_at", {}).items()
             }
+            self._validation_policy_version = (
+                data.get("meta", {}).get("validation_policy_version", 0)
+            )
         except Exception:
             pass
 
@@ -239,6 +366,7 @@ class BrokenCache:
         }
         if self._checked_at:
             data["checked_at"] = dict(sorted(self._checked_at.items()))
+        data["meta"] = {"validation_policy_version": VALIDATION_POLICY_VERSION}
         tmp = self.path.with_suffix(".tmp")
         tmp.write_text(
             json.dumps(data, indent=2, ensure_ascii=False), encoding="utf-8"
@@ -252,6 +380,10 @@ class BrokenCache:
     @property
     def ok(self) -> set[str]:
         return self._ok
+
+    @property
+    def is_current_policy(self) -> bool:
+        return self._validation_policy_version == VALIDATION_POLICY_VERSION
 
     def is_broken(self, url: str) -> bool:
         """Verifica se URL está no cache de links quebrados.

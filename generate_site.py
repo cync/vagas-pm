@@ -8,7 +8,12 @@ from datetime import datetime, timedelta, date
 from pathlib import Path
 from collections import defaultdict
 
-from link_checker import BrokenCache, check_urls_parallel, is_specific_job_url, normalize_url
+from link_checker import (
+    BrokenCache,
+    check_urls_parallel_status,
+    is_specific_job_url,
+    normalize_url,
+)
 
 SITE_DIR    = Path(__file__).parent
 VAGAS_DIR   = SITE_DIR / "vagas"
@@ -122,8 +127,9 @@ def _validate_all_links_live(*runs_lists):
 
     already_ok = set()
     to_check = set()
+    allow_recent_ok_cache = cache.is_current_policy
     for u in all_urls:
-        if u in cache.ok and cache._checked_at.get(u, "0000-00-00") > stale_cutoff:
+        if allow_recent_ok_cache and u in cache.ok and cache._checked_at.get(u, "0000-00-00") > stale_cutoff:
             already_ok.add(u)
         else:
             to_check.add(u)
@@ -134,21 +140,29 @@ def _validate_all_links_live(*runs_lists):
 
     url_list = sorted(to_check)
     print(f"  Validando {len(url_list)} links via HTTP ({len(already_ok)} no cache)...", flush=True)
-    results = check_urls_parallel(url_list)
-    newly_dead = {u for u, dead in results.items() if dead}
-    newly_alive = {u for u, dead in results.items() if not dead}
+    results = check_urls_parallel_status(url_list)
+    newly_dead = {u for u, status in results.items() if status == "dead"}
+    newly_alive = {u for u, status in results.items() if status == "open"}
+    not_confirmed = {u for u, status in results.items() if status == "unknown"}
 
     # Mark alive URLs in cache
     cache.add_ok_batch(newly_alive, today_str)
 
-    if newly_dead:
+    to_remove = newly_dead | not_confirmed
+    if to_remove:
         for runs_list in runs_lists:
             for r in runs_list:
-                r["jobs"] = [j for j in r["jobs"] if j.get("url", "") not in newly_dead]
+                r["jobs"] = [j for j in r["jobs"] if j.get("url", "") not in to_remove]
                 r["novas"] = len(r["jobs"])
 
-        cache.add_broken_batch(newly_dead)
-        print(f"  {len(newly_dead)} links mortos removidos", flush=True)
+        if newly_dead:
+            cache.add_broken_batch(newly_dead)
+        msg = []
+        if newly_dead:
+            msg.append(f"{len(newly_dead)} mortos")
+        if not_confirmed:
+            msg.append(f"{len(not_confirmed)} nao confirmados")
+        print(f"  {', '.join(msg)} removidos do site", flush=True)
     else:
         print(f"  Todos os {len(url_list)} links validos", flush=True)
 
