@@ -1,36 +1,91 @@
 #!/usr/bin/env python3
 """
-deploy.py — Pipeline completo de deploy do site vagas-pm.
+deploy.py - Pipeline completo de deploy do site vagas-pm.
 
 Etapas:
   1. Sincroniza arquivos MD da pasta raiz (VagasInternacionais/) para site/vagas/
-  2. Gera o site (generate_site.py)
-  3. Envia push notification (notify.py)
-  4. Commit + push para o GitHub com tratamento automático de conflitos
+  2. Sincroniza o repositorio local com o remoto
+  3. Gera o site (generate_site.py)
+  4. Envia push notification (notify.py)
+  5. Commit + push para o GitHub
 
 Uso:
   python deploy.py                  # executa tudo
-  python deploy.py --skip-notify    # pula notificação
-  python deploy.py --skip-git       # pula commit/push (útil para testes)
+  python deploy.py --skip-notify    # pula notificacao
+  python deploy.py --skip-git       # pula sync/commit/push
 """
 
-import sys, re, shutil, subprocess
+import re
+import shutil
+import subprocess
+import sys
 from datetime import date
 from pathlib import Path
 
-SITE_DIR  = Path(__file__).parent.resolve()
-ROOT_DIR  = SITE_DIR.parent          # VagasInternacionais/
+SITE_DIR = Path(__file__).parent.resolve()
+ROOT_DIR = SITE_DIR.parent
 VAGAS_DIR = SITE_DIR / "vagas"
 
 SKIP_NOTIFY = "--skip-notify" in sys.argv
-SKIP_GIT    = "--skip-git"    in sys.argv
+SKIP_GIT = "--skip-git" in sys.argv
+
+TEXT_EXTENSIONS = {
+    ".bat", ".css", ".html", ".js", ".json", ".md",
+    ".py", ".txt", ".yaml", ".yml",
+}
 
 
 def log(msg):
     print(f"[deploy] {msg}", flush=True)
 
 
-# ── 1. Sincroniza MD files da pasta raiz → site/vagas/ ──────────────────────
+def fail(msg):
+    log(f"ERRO: {msg}")
+    sys.exit(1)
+
+
+def git(*args, check=False):
+    result = subprocess.run(
+        ["git"] + list(args),
+        cwd=SITE_DIR,
+        capture_output=True,
+        text=True,
+    )
+    if check and result.returncode != 0:
+        log(f"git {' '.join(args)} falhou:\n{result.stderr.strip()}")
+    return result
+
+
+def _repo_text_files():
+    for path in SITE_DIR.rglob("*"):
+        if not path.is_file():
+            continue
+        if any(part in {".git", "__pycache__"} for part in path.parts):
+            continue
+        if path.suffix.lower() in TEXT_EXTENSIONS:
+            yield path
+
+
+def assert_no_conflict_markers(context):
+    unmerged = git("diff", "--name-only", "--diff-filter=U")
+    if unmerged.returncode == 0:
+        conflicted = [line.strip() for line in unmerged.stdout.splitlines() if line.strip()]
+        if conflicted:
+            fail(f"conflitos Git pendentes {context}: {', '.join(conflicted)}")
+
+    flagged = []
+    pattern = re.compile(r"(?m)^(<<<<<<< |=======|>>>>>>> )")
+    for path in _repo_text_files():
+        try:
+            text = path.read_text(encoding="utf-8", errors="ignore")
+        except Exception:
+            continue
+        if pattern.search(text):
+            flagged.append(str(path.relative_to(SITE_DIR)))
+
+    if flagged:
+        fail(f"marcadores de conflito encontrados {context}: {', '.join(flagged)}")
+
 
 def sync_md_files():
     synced = []
@@ -46,78 +101,73 @@ def sync_md_files():
     return synced
 
 
-# ── 2. Gera o site ───────────────────────────────────────────────────────────
+def git_sync_remote():
+    log("Sincronizando com remote (pull --rebase --autostash)...")
+    pull = git("pull", "--rebase", "--autostash")
+    if pull.returncode != 0:
+        fail(f"pull --rebase falhou:\n{pull.stderr.strip()}")
+    assert_no_conflict_markers("apos sincronizar com o remote")
+
 
 def generate_site():
     log("Gerando site...")
     result = subprocess.run(
         [sys.executable, str(SITE_DIR / "generate_site.py")],
-        cwd=SITE_DIR, capture_output=True, text=True
+        cwd=SITE_DIR,
+        capture_output=True,
+        text=True,
     )
     print(result.stdout, end="")
     if result.returncode != 0:
         print(result.stderr, end="")
-        log("ERRO: generate_site.py falhou.")
-        sys.exit(1)
+        fail("generate_site.py falhou.")
+    assert_no_conflict_markers("apos gerar o site")
 
-
-# ── 3. Lê contagem e empresas do último arquivo PM ───────────────────────────
 
 def read_latest_run():
     pm_files = sorted(VAGAS_DIR.glob("vagas_pm_*.md"), key=lambda f: f.name)
     if not pm_files:
         return 0, ""
+
     text = pm_files[-1].read_text(encoding="utf-8", errors="replace")
-    m = re.search(r'[Nn]ovas[^\d]*(\d+)', text)
-    count = int(m.group(1)) if m else 0
-    # Extrai empresas da seção de novas vagas (antes de "Já Vistas")
+    count_match = re.search(r"[Nn]ovas[^\d]*(\d+)", text)
+    count = int(count_match.group(1)) if count_match else 0
+
     novas_section = re.split(
-        r'##\s+.*(?:Já Vistas|Already|ignoradas)', text, flags=re.IGNORECASE
+        r"##\s+.*(?:Ja Vistas|J[aá] Vistas|Already|ignoradas)",
+        text,
+        flags=re.IGNORECASE,
     )[0]
-    companies = re.findall(r'\|\s*([^|*\[\]#<>\n]+?)\s*\|', novas_section)
+    companies = re.findall(r"\|\s*([^|*\[\]#<>\n]+?)\s*\|", novas_section)
+
     seen, unique = set(), []
-    for c in companies:
-        c = c.strip()
-        if c and c not in ("Empresa", "Company", "---", "") and c not in seen:
-            seen.add(c)
-            unique.append(c)
+    for company in companies:
+        company = company.strip()
+        if company and company not in {"Empresa", "Company", "---"} and company not in seen:
+            seen.add(company)
+            unique.append(company)
     return count, ", ".join(unique[:5])
 
 
-# ── 4. Envia push notification ───────────────────────────────────────────────
-
 def send_notification(count, companies):
     if count == 0:
-        log("Nenhuma vaga nova — notificação ignorada.")
+        log("Nenhuma vaga nova; notificacao ignorada.")
         return
-    log(f"Enviando notificação: {count} vagas ({companies})...")
+
+    log(f"Enviando notificacao: {count} vagas ({companies})...")
     result = subprocess.run(
         [sys.executable, str(SITE_DIR / "notify.py"), str(count), companies],
-        cwd=SITE_DIR, capture_output=True, text=True
+        cwd=SITE_DIR,
+        capture_output=True,
+        text=True,
     )
     print(result.stdout, end="")
     if result.returncode != 0:
         log(f"notify.py aviso: {result.stderr.strip()}")
 
 
-# ── 5. Git: pull → add → commit → push ──────────────────────────────────────
-
-def git(*args, check=False):
-    r = subprocess.run(
-        ["git"] + list(args),
-        cwd=SITE_DIR, capture_output=True, text=True
-    )
-    if check and r.returncode != 0:
-        log(f"git {' '.join(args)} falhou:\n{r.stderr.strip()}")
-    return r
-
-
 def git_deploy():
-    log("Sincronizando com remote (pull --rebase --autostash)...")
-    pull = git("pull", "--rebase", "--autostash")
-    if pull.returncode != 0:
-        log(f"ERRO no pull --rebase:\n{pull.stderr.strip()}")
-        sys.exit(1)
+    assert_no_conflict_markers("antes do commit")
 
     log("Staged changes...")
     git("add", "-A")
@@ -130,36 +180,38 @@ def git_deploy():
 
     log("Fazendo push...")
     push = git("push")
-    if push.returncode == 0:
-        log("Push OK.")
-    else:
-        log(f"ERRO no push: {push.stderr.strip()}")
-        sys.exit(1)
+    if push.returncode != 0:
+        fail(f"push falhou:\n{push.stderr.strip()}")
+    log("Push OK.")
 
-
-# ── Main ─────────────────────────────────────────────────────────────────────
 
 if __name__ == "__main__":
     log("=== deploy.py iniciado ===")
 
-    log("1/4  Sincronizando arquivos MD...")
+    log("1/5  Sincronizando arquivos MD...")
     sync_md_files()
 
-    log("2/4  Gerando site...")
+    if not SKIP_GIT:
+        log("2/5  Sincronizando Git antes da geracao...")
+        git_sync_remote()
+    else:
+        log("2/5  Git sync ignorado (--skip-git).")
+
+    log("3/5  Gerando site...")
     generate_site()
 
     count, companies = read_latest_run()
 
     if not SKIP_NOTIFY:
-        log("3/4  Notificação...")
+        log("4/5  Notificacao...")
         send_notification(count, companies)
     else:
-        log("3/4  Notificação ignorada (--skip-notify).")
+        log("4/5  Notificacao ignorada (--skip-notify).")
 
     if not SKIP_GIT:
-        log("4/4  Git deploy...")
+        log("5/5  Git deploy...")
         git_deploy()
     else:
-        log("4/4  Git ignorado (--skip-git).")
+        log("5/5  Git ignorado (--skip-git).")
 
-    log("=== Deploy concluído ===")
+    log("=== Deploy concluido ===")
