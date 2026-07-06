@@ -2,10 +2,13 @@ name: Vagas PM - automatic search
 
 on:
   schedule:
-    # 06:00 BRT (UTC-3) = 09:00 UTC, Monday to Saturday
-    - cron: "0 9 * * 1-6"
-    # 18:00 BRT (UTC-3) = 21:00 UTC, Monday to Saturday
-    - cron: "0 21 * * 1-6"
+    # Daily runs in BRT (UTC-3), kept away from minute 0 to avoid scheduler drops.
+    # 06:17 BRT = 09:17 UTC
+    - cron: "17 9 * * *"
+    # 07:47 BRT = 10:47 UTC, fallback if the first run is delayed or dropped
+    - cron: "47 10 * * *"
+    # 18:23 BRT = 21:23 UTC
+    - cron: "23 21 * * *"
   workflow_dispatch:
 
 permissions:
@@ -31,6 +34,9 @@ jobs:
         with:
           python-version: "3.11"
 
+      - name: Sync latest main
+        run: git pull --rebase origin main
+
       - name: Search jobs and regenerate site
         env:
           ONESIGNAL_APP_ID: ${{ secrets.ONESIGNAL_APP_ID }}
@@ -47,5 +53,11 @@ jobs:
             exit 0
           fi
           git commit -m "auto: vagas PM $(date -u +'%Y-%m-%d %H:%M UTC')"
-          git pull --rebase origin main
+          for attempt in 1 2 3; do
+            if git push origin HEAD:main; then
+              exit 0
+            fi
+            echo "Push failed on attempt ${attempt}; rebasing and retrying..."
+            git pull --rebase origin main
+          done
           git push origin HEAD:main
