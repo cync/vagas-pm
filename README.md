@@ -22,6 +22,7 @@ O site exibe todas as execuções históricas, organizadas por data, com filtros
 | Ashby HQ | Hubstaff, Owner.com, Quora, Hopper |
 | Greenhouse | Coinbase, Remote.com, Cloudbeds, QuintoAndar |
 | Remotive | Vagas remotas por categoria |
+| Wellfound | Product Manager remoto com foco LATAM/global |
 
 ---
 
@@ -34,7 +35,7 @@ GitHub Actions (cron 06:00 e 15:00 BRT)
        ↓
 search_and_generate.py
        ↓
-APIs públicas dos ATS — Greenhouse, Lever, Ashby e Remotive
+APIs/páginas públicas — Greenhouse, Lever, Ashby, Remotive e Wellfound
        ↓
 Filtro local determinístico de cargo/região/remoto
        ↓
@@ -116,7 +117,7 @@ git push
 
 | Componente | Tecnologia |
 |---|---|
-| Busca | APIs públicas diretas dos ATS (`direct_sources.json`) |
+| Busca | APIs/páginas públicas diretas (`direct_sources.json`) |
 | Extração | Filtro local determinístico |
 | Geração HTML | Python puro (sem frameworks) |
 | Hospedagem | GitHub Pages (branch `main`) |

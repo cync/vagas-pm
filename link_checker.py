@@ -98,6 +98,7 @@ PROVIDER_POSITIVE_MARKERS = {
     "weworkremotely": ["we work remotely", "apply for this position"],
     "remotive": ["candidate_required_location", "remotive"],
     "himalayas": ["himalayas", "years of experience"],
+    "wellfound": ["wellfound", "apply", "full-time"],
 }
 
 
@@ -139,6 +140,8 @@ def _detect_provider(url: str) -> str:
         return "remotive"
     if "himalayas.app" in url:
         return "himalayas"
+    if "wellfound.com" in url:
+        return "wellfound"
     return "other"
 
 
@@ -317,6 +320,8 @@ def is_specific_job_url(url: str) -> bool:
         return True  # WWR slug
     if re.search(r"remotive\.com/remote/jobs/[a-z0-9-]+/[a-z0-9-]+-\d+$", url):
         return True  # Remotive category + slug + numeric ID
+    if re.search(r"wellfound\.com/(?:jobs|company/[^/]+/jobs)/[a-z0-9-]+", url, re.I):
+        return True  # Wellfound job slug
     if re.search(r"/jobs/[a-z0-9-]{10,}$", url):
         return True  # Remotive/Himalayas slug
     if re.search(r"/o/[a-z0-9-]+$", url):

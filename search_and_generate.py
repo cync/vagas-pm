@@ -103,8 +103,13 @@ def filter_live_vagas(vagas: list[dict]) -> list[dict]:
 
 # ── Buscas ────────────────────────────────────────────────────────────────────
 HTTP_HEADERS = {
-    "User-Agent": "Mozilla/5.0 vagas-pm-bot/2.0 (+https://cync.github.io/vagas-pm/)",
-    "Accept": "application/json,text/html;q=0.8,*/*;q=0.5",
+    "User-Agent": (
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+        "AppleWebKit/537.36 (KHTML, like Gecko) "
+        "Chrome/124.0.0.0 Safari/537.36"
+    ),
+    "Accept": "application/json,text/html,application/xhtml+xml,*/*;q=0.8",
+    "Accept-Language": "en-US,en;q=0.9",
 }
 
 REMOTE_RE = re.compile(
@@ -133,11 +138,16 @@ def _get_json(url: str) -> dict | list:
         raw = resp.read().decode("utf-8", errors="replace")
     return json.loads(raw)
 
+def _get_text(url: str) -> str:
+    req = urllib.request.Request(url, headers=HTTP_HEADERS)
+    with urllib.request.urlopen(req, timeout=25) as resp:
+        return resp.read().decode("utf-8", errors="replace")
+
 def load_sources() -> list[dict]:
     if not SOURCES_FILE.exists():
         return []
     data = json.loads(SOURCES_FILE.read_text(encoding="utf-8"))
-    return [s for s in data if s.get("ats") and (s.get("board") or s.get("category"))]
+    return [s for s in data if s.get("ats") and (s.get("board") or s.get("category") or s.get("url"))]
 
 def _job(company: str, role: str, url: str, ats: str, content: str = "", location: str = "") -> dict:
     text = " ".join(p for p in [role, location, content] if p)
@@ -159,6 +169,27 @@ def _accept_direct_job(job: dict) -> bool:
     if US_ONLY_RE.search(text):
         return False
     return bool(REMOTE_RE.search(text) or REGION_RE.search(text))
+
+LATAM_REMOTE_RE = re.compile(
+    r"\b(latam|latin america|brazil|brasil|south america|argentina|colombia|mexico|"
+    r"peru|chile|worldwide|global|anywhere|work from anywhere)\b",
+    re.I,
+)
+NON_LATAM_LOCK_RE = re.compile(
+    r"\b(us only|u\.s\. only|united states only|usa only|remote only\s*[•-]\s*(?:united states|usa|us|canada|india|europe)|"
+    r"remote\s*[•-]\s*(?:united states|usa|us|canada|india)|must be based in (?:the )?(?:united states|usa|us|canada|india|europe))\b",
+    re.I,
+)
+
+def _accept_latam_remote_pm_job(job: dict) -> bool:
+    text = f"{job.get('title','')} {job.get('content','')}"
+    if not PM_KEYWORDS.search(job.get("title", "")):
+        return False
+    if EXCLUDE_KEYWORDS.search(job.get("title", "")):
+        return False
+    if NON_LATAM_LOCK_RE.search(text) or US_ONLY_RE.search(text):
+        return False
+    return bool(REMOTE_RE.search(text) and LATAM_REMOTE_RE.search(text))
 
 def _fetch_greenhouse(source: dict) -> list[dict]:
     board = source["board"]
@@ -236,11 +267,62 @@ def _fetch_remotive(source: dict) -> list[dict]:
         ))
     return jobs
 
+def _extract_anchor_tags(page: str) -> list[tuple[str, str]]:
+    anchors = []
+    for match in re.finditer(r"<a\b([^>]*)>(.*?)</a>", page, flags=re.I | re.S):
+        attrs, body = match.group(1), match.group(2)
+        href_m = re.search(r'href=["\']([^"\']+)["\']', attrs, flags=re.I)
+        if not href_m:
+            continue
+        anchors.append((html.unescape(href_m.group(1)), _strip_html(body)))
+    return anchors
+
+def _wellfound_absolute_url(href: str) -> str:
+    if href.startswith("http"):
+        return href
+    return urllib.parse.urljoin("https://wellfound.com", href)
+
+def _fetch_wellfound(source: dict) -> list[dict]:
+    page_url = source.get("url") or "https://wellfound.com/role/r/product-manager"
+    page = _get_text(page_url)
+    plain = _strip_html(page)
+    anchors = _extract_anchor_tags(page)
+    company = source.get("company") or "Wellfound"
+    jobs: list[dict] = []
+
+    for href, label in anchors:
+        if not PM_KEYWORDS.search(label) or EXCLUDE_KEYWORDS.search(label):
+            continue
+        absolute_url = _wellfound_absolute_url(href)
+        if "wellfound.com" not in absolute_url:
+            continue
+        parsed = urllib.parse.urlparse(absolute_url)
+        path = parsed.path.lower()
+        if not ("/jobs/" in path or re.search(r"/company/[^/]+/jobs", path)):
+            continue
+
+        idx = plain.lower().find(label.lower())
+        context = plain[max(0, idx - 600):idx + 900] if idx >= 0 else plain[:1200]
+        company_m = re.search(r"([A-Z][A-Za-z0-9&.,' -]{1,60})\s+(?:Actively Hiring|Full-time)", context)
+        if company_m:
+            company = company_m.group(1).strip()
+
+        jobs.append(_job(
+            company,
+            label,
+            absolute_url,
+            "Wellfound",
+            context,
+            "",
+        ))
+    return jobs
+
 FETCHERS = {
     "greenhouse": _fetch_greenhouse,
     "lever": _fetch_lever,
     "ashby": _fetch_ashby,
     "remotive": _fetch_remotive,
+    "wellfound": _fetch_wellfound,
 }
 
 def _fetch_source(source: dict) -> tuple[dict, list[dict], str | None]:
@@ -248,7 +330,8 @@ def _fetch_source(source: dict) -> tuple[dict, list[dict], str | None]:
     if not fetcher:
         return source, [], f"ATS sem fetcher: {source.get('ats')}"
     try:
-        jobs = [j for j in fetcher(source) if j.get("url") and _accept_direct_job(j)]
+        accept = _accept_latam_remote_pm_job if source.get("ats", "").lower() == "wellfound" else _accept_direct_job
+        jobs = [j for j in fetcher(source) if j.get("url") and accept(j)]
         return source, jobs, None
     except Exception as e:
         return source, [], f"{type(e).__name__}: {e}"
@@ -286,6 +369,7 @@ def detect_ats(url: str) -> str:
     if "smartrecruiters.com" in url: return "SmartRecruiters"
     if "weworkremotely.com"  in url: return "WWR"
     if "remotive.com"        in url: return "Remotive"
+    if "wellfound.com"       in url: return "Wellfound"
     if "himalayas.app"       in url: return "Himalayas"
     if "workable.com"        in url: return "Workable"
     return "Outro"
@@ -299,7 +383,7 @@ Retorne um JSON array. Cada item deve ter:
 - "company": nome da empresa
 - "role": título do cargo
 - "url": URL exata da vaga
-- "ats": plataforma ATS (Lever / Ashby / Greenhouse / SmartRecruiters / WWR / Remotive / Himalayas / Workable / Outro)
+- "ats": plataforma ATS (Lever / Ashby / Greenhouse / SmartRecruiters / WWR / Remotive / Wellfound / Himalayas / Workable / Outro)
 - "latam_friendly": true se menciona LATAM, Brazil, remote-anywhere, ou não restringe a US/EU
 
 Inclua SOMENTE vagas de PM (Product Manager, Product Owner, Head of Product). Exclua engineering, design, marketing, etc.
@@ -416,7 +500,7 @@ def extract_vagas(raw_results: list[dict]) -> list[dict]:
 ATS_EMOJI = {
     "Lever": "🔷", "Ashby": "🔶", "Greenhouse": "🟢",
     "SmartRecruiters": "🔴", "WWR": "🟡",
-    "Remotive": "⚪", "Himalayas": "⚪", "Workable": "⚫", "Outro": "⚫",
+    "Remotive": "⚪", "Wellfound": "⚪", "Himalayas": "⚪", "Workable": "⚫", "Outro": "⚫",
 }
 ATS_LABEL = {
     "Ashby": "Ashby HQ", "WWR": "We Work Remotely",
@@ -430,6 +514,7 @@ def group_by_ats(vagas):
         elif "Greenhouse" in ats: ats = "Greenhouse"
         elif "Smart" in ats: ats = "SmartRecruiters"
         elif "WeWork" in ats or "We Work" in ats or ats == "WWR": ats = "WWR"
+        elif "Wellfound" in ats: ats = "Wellfound"
         elif "Workable" in ats: ats = "Workable"
         groups.setdefault(ats, []).append(v)
     return groups
@@ -446,7 +531,7 @@ def generate_markdown(vagas, prev_count) -> str:
     lines = [
         f"# 🆕 Vagas PM Internacionais – {now}",
         "",
-        f"> **Execução automática** | Busca em ATS internacionais (Lever, Ashby, Greenhouse, SmartRecruiters, WWR, Remotive, Workable)",
+        f"> **Execução automática** | Busca em ATS internacionais (Lever, Ashby, Greenhouse, SmartRecruiters, WWR, Remotive, Wellfound, Workable)",
         f"> **Histórico:** {prev_count} vagas anteriores ignoradas | **Novas encontradas:** {len(vagas)}",
         "",
         "---",
@@ -458,7 +543,7 @@ def generate_markdown(vagas, prev_count) -> str:
     if not vagas:
         lines.append("*Nenhuma vaga nova encontrada nesta execução.*")
     else:
-        ATS_ORDER = ["Lever", "Ashby", "Greenhouse", "SmartRecruiters", "WWR", "Remotive", "Himalayas", "Workable", "Outro"]
+        ATS_ORDER = ["Lever", "Ashby", "Greenhouse", "SmartRecruiters", "WWR", "Remotive", "Wellfound", "Himalayas", "Workable", "Outro"]
         for ats in ATS_ORDER:
             bucket = groups.get(ats, [])
             if not bucket:
