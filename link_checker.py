@@ -32,6 +32,11 @@ HEADERS = {
     "Accept-Language": "en-US,en;q=0.9",
 }
 
+MANUALLY_BLOCKED_URLS = {
+    "https://jobs.lever.co/RyzLabs/6a182574-db22-48ca-8a17-7e66d14da5b5",
+    "https://jobs.lever.co/oowlish/da056da7-5079-42cb-ab46-d7babc2dd8e1",
+}
+
 VALIDATION_POLICY_VERSION = 2
 
 DEAD_PHRASES = [
@@ -143,6 +148,10 @@ def _detect_provider(url: str) -> str:
     if "wellfound.com" in url:
         return "wellfound"
     return "other"
+
+
+def is_manually_blocked_url(url: str) -> bool:
+    return normalize_url(url) in {normalize_url(u) for u in MANUALLY_BLOCKED_URLS}
 
 
 # ── Ashby API check ───────────────────────────────────────────────────────────
@@ -269,6 +278,8 @@ def get_url_status(url: str) -> str:
     """Retorna o status do link da vaga: open, dead ou unknown.
     O site deve publicar apenas links com status open."""
     normalized = normalize_url(url)
+    if is_manually_blocked_url(normalized):
+        return "dead"
     provider = _detect_provider(normalized)
 
     if provider == "ashby":

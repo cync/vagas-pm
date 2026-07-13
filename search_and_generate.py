@@ -11,7 +11,7 @@ from pathlib import Path
 
 from link_checker import (
     BrokenCache, check_urls_parallel_status, is_specific_job_url,
-    normalize_url,
+    is_manually_blocked_url, normalize_url,
 )
 
 if hasattr(sys.stdout, "reconfigure"):
@@ -185,6 +185,8 @@ NON_LATAM_LOCK_RE = re.compile(
 )
 
 def _accept_latam_remote_pm_job(job: dict) -> bool:
+    if is_manually_blocked_url(job.get("url", "")):
+        return False
     text = f"{job.get('title','')} {job.get('content','')}"
     if not PM_KEYWORDS.search(job.get("title", "")):
         return False

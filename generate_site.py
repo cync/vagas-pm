@@ -11,6 +11,7 @@ from collections import defaultdict
 from link_checker import (
     BrokenCache,
     check_urls_parallel_status,
+    is_manually_blocked_url,
     is_specific_job_url,
     normalize_url,
 )
@@ -98,6 +99,8 @@ _broken_recheck_cutoff = date.today() - timedelta(days=14)
 
 def _should_publish_candidate(job):
     url = job.get("url", "")
+    if is_manually_blocked_url(url):
+        return False
     if not is_specific_job_url(url):
         return False
     if not cache.is_broken(url):
