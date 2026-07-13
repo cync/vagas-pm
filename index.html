@@ -296,7 +296,7 @@ async function toggleSubscribe() {
     </div>
   </div>
   <div class="footer-bottom">
-    <span>&#169; 2026 Felipe Saraiva · Atualizado em 12 Jul 2026 · 19:10</span>
+    <span>&#169; 2026 Felipe Saraiva · Atualizado em 13 Jul 2026 · 09:18</span>
     <span class="updated-badge">&#x2726; 133 PM · 7 UI/UX · 79 execucoes</span>
   </div>
 </footer>
@@ -357,8 +357,8 @@ function monthSortKey(ptLabel) {
   return y+'-'+String(MESES_FULL_PT.indexOf(m)+1).padStart(2,'0');
 }
 
-const TW = '2026-07-06';
-const LW = '2026-06-29';
+const TW = '2026-07-13';
+const LW = '2026-07-06';
 function weekStart(s) { const d=new Date(s+'T12:00:00'); d.setDate(d.getDate()-((d.getDay()+6)%7)); return d.toISOString().slice(0,10); }
 function weekBucket(s) { const ws=weekStart(s); if(ws>=TW) return 'this_week'; if(ws>=LW) return 'last_week'; return 'earlier'; }
 
