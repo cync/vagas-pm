@@ -57,7 +57,7 @@ def filter_live_vagas(vagas: list[dict]) -> list[dict]:
     cache = BrokenCache(BROKEN_FILE)
     today_str = _date.today().isoformat()
 
-    to_check = [v for v in vagas if normalize_url(v.get("url", "")) not in cache.broken]
+    to_check = [v for v in vagas if v.get("url")]
 
     if not to_check:
         return []
@@ -80,13 +80,16 @@ def filter_live_vagas(vagas: list[dict]) -> list[dict]:
             live.append(v)
             newly_alive.add(nurl)
         else:
+            live.append(v)
             not_confirmed.add(nurl)
-            print(f"    ⚠️  sem confirmacao de vaga aberta: {v.get('company','?')} — {nurl}", flush=True)
+            print(f"    ⚠️  sem confirmacao HTTP positiva, mantendo: {v.get('company','?')} — {nurl}", flush=True)
 
     if newly_broken:
         cache.add_broken_batch(newly_broken)
     if newly_alive:
         cache.add_ok_batch(newly_alive, today_str)
+    for u in not_confirmed:
+        cache.mark_unknown(u)
     cache.save()
 
     if newly_broken or not_confirmed:
@@ -94,7 +97,7 @@ def filter_live_vagas(vagas: list[dict]) -> list[dict]:
         if newly_broken:
             parts.append(f"💀 {len(newly_broken)} mortos")
         if not_confirmed:
-            parts.append(f"⚠️  {len(not_confirmed)} nao confirmados")
+            parts.append(f"⚠️  {len(not_confirmed)} nao confirmados mantidos")
         print(" | ".join(parts), flush=True)
     else:
         print(f"  ✅ Todos os {len(live)} links válidos", flush=True)
@@ -172,7 +175,7 @@ def _accept_direct_job(job: dict) -> bool:
 
 LATAM_REMOTE_RE = re.compile(
     r"\b(latam|latin america|brazil|brasil|south america|argentina|colombia|mexico|"
-    r"peru|chile|worldwide|global|anywhere|work from anywhere)\b",
+    r"peru|chile)\b",
     re.I,
 )
 NON_LATAM_LOCK_RE = re.compile(
@@ -330,7 +333,7 @@ def _fetch_source(source: dict) -> tuple[dict, list[dict], str | None]:
     if not fetcher:
         return source, [], f"ATS sem fetcher: {source.get('ats')}"
     try:
-        accept = _accept_latam_remote_pm_job if source.get("ats", "").lower() == "wellfound" else _accept_direct_job
+        accept = _accept_latam_remote_pm_job
         jobs = [j for j in fetcher(source) if j.get("url") and accept(j)]
         return source, jobs, None
     except Exception as e:
@@ -681,25 +684,6 @@ def main():
         print("🔗 Validando links...", flush=True)
         new_vagas = filter_live_vagas(new_vagas)
         print(f"🆕 {len(new_vagas)} vagas novas com links válidos", flush=True)
-
-    if not new_vagas:
-        save_history(history)
-        print(f"📚 Histórico atualizado: {len(history)} URLs", flush=True)
-        print("🌐 Regenerando site sem criar execucao vazia...", flush=True)
-        import subprocess
-        result = subprocess.run(
-            [sys.executable, str(SCRIPT_DIR / "generate_site.py")],
-            capture_output=True, text=True
-        )
-        if result.stdout:
-            print(result.stdout, flush=True)
-        if result.returncode != 0:
-            print(f"⚠️  generate_site.py retornou código {result.returncode}", flush=True)
-            if result.stderr:
-                print(result.stderr, flush=True)
-            return result.returncode
-        print("✅ Concluído — nenhuma vaga nova encontrada", flush=True)
-        return 0
 
     base = VAGAS_DIR / f"vagas_pm_{TODAY}.md"
     if base.exists():

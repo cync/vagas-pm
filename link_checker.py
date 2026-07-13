@@ -411,6 +411,13 @@ class BrokenCache:
         self._broken.discard(n)
         self._checked_at[n] = date_str
 
+    def mark_unknown(self, url: str):
+        """Keep uncertain links publishable, but do not cache them as healthy."""
+        n = normalize_url(url)
+        self._broken.discard(n)
+        self._ok.discard(n)
+        self._checked_at.pop(n, None)
+
     def add_broken_batch(self, urls: set[str]):
         for u in urls:
             self.mark_broken(u)

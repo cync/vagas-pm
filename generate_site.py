@@ -88,21 +88,30 @@ def parse_md_file(filepath, prefix="vagas_pm"):
 runs = [r for f in _collect_files("vagas_pm_*.md") if (r := parse_md_file(f, "vagas_pm"))]
 if runs: runs[-1]["is_latest"] = True
 
-uiux_runs = [r for f in _collect_files("vagas_uiux_*.md") if (r := parse_md_file(f, "vagas_uiux"))]
-if uiux_runs: uiux_runs[-1]["is_latest"] = True
+uiux_runs = []
 
 _broken_path = SITE_DIR / "broken_links.json"
 
 cache = BrokenCache(_broken_path)
+
+_broken_recheck_cutoff = date.today() - timedelta(days=14)
+
+def _should_publish_candidate(job):
+    url = job.get("url", "")
+    if not is_specific_job_url(url):
+        return False
+    if not cache.is_broken(url):
+        return True
+    try:
+        return date.fromisoformat(job.get("date", "")) >= _broken_recheck_cutoff
+    except ValueError:
+        return False
+
 for r in runs:
-    r["jobs"] = [j for j in r["jobs"]
-                 if not cache.is_broken(j.get("url", ""))
-                 and is_specific_job_url(j.get("url", ""))]
+    r["jobs"] = [j for j in r["jobs"] if _should_publish_candidate(j)]
     r["novas"] = len(r["jobs"])
 for r in uiux_runs:
-    r["jobs"] = [j for j in r["jobs"]
-                 if not cache.is_broken(j.get("url", ""))
-                 and is_specific_job_url(j.get("url", ""))]
+    r["jobs"] = [j for j in r["jobs"] if _should_publish_candidate(j)]
     r["novas"] = len(r["jobs"])
 
 # ── Live re-validation: HTTP-check ALL remaining URLs ─────────────────────────
@@ -147,8 +156,10 @@ def _validate_all_links_live(*runs_lists):
 
     # Mark alive URLs in cache
     cache.add_ok_batch(newly_alive, today_str)
+    for u in not_confirmed:
+        cache.mark_unknown(u)
 
-    to_remove = newly_dead | not_confirmed
+    to_remove = newly_dead
     if to_remove:
         for runs_list in runs_lists:
             for r in runs_list:
@@ -160,15 +171,20 @@ def _validate_all_links_live(*runs_lists):
         msg = []
         if newly_dead:
             msg.append(f"{len(newly_dead)} mortos")
-        if not_confirmed:
-            msg.append(f"{len(not_confirmed)} nao confirmados")
         print(f"  {', '.join(msg)} removidos do site", flush=True)
     else:
-        print(f"  Todos os {len(url_list)} links validos", flush=True)
+        print(f"  Nenhum link confirmado morto", flush=True)
+
+    if not_confirmed:
+        print(f"  {len(not_confirmed)} links sem confirmacao HTTP positiva mantidos no site", flush=True)
 
     cache.save()
 
 _validate_all_links_live(runs, uiux_runs)
+
+for r in runs:
+    r["jobs"] = [j for j in r["jobs"] if j.get("region") == "latam"]
+    r["novas"] = len(r["jobs"])
 
 all_jobs = []
 for run in runs:
