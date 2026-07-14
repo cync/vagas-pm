@@ -21,5 +21,11 @@
   {"ats": "ashby", "company": "Render", "board": "render"},
   {"ats": "ashby", "company": "Hopper", "board": "hopper"},
   {"ats": "remotive", "company": "Remotive", "category": "product"},
-  {"ats": "wellfound", "company": "Wellfound", "url": "https://wellfound.com/role/r/product-manager"}
+  {
+    "ats": "wellfound",
+    "company": "Wellfound",
+    "url": "https://wellfound.com/role/r/product-manager",
+    "enabled": false,
+    "disabled_reason": "Wellfound currently returns HTTP 403 for public job/search pages from automation; no stable public jobs API/feed is configured."
+  }
 ]

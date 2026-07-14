@@ -150,7 +150,27 @@ def load_sources() -> list[dict]:
     if not SOURCES_FILE.exists():
         return []
     data = json.loads(SOURCES_FILE.read_text(encoding="utf-8"))
-    return [s for s in data if s.get("ats") and (s.get("board") or s.get("category") or s.get("url"))]
+    return [
+        s for s in data
+        if s.get("enabled", True)
+        and s.get("ats")
+        and (s.get("board") or s.get("category") or s.get("url"))
+    ]
+
+def _source_display_name(source: dict) -> str:
+    ats = (source.get("ats") or "").strip()
+    labels = {
+        "ashby": "Ashby",
+        "greenhouse": "Greenhouse",
+        "lever": "Lever",
+        "remotive": "Remotive",
+        "wellfound": "Wellfound",
+    }
+    return labels.get(ats.lower(), ats or "Outro")
+
+def active_source_names() -> str:
+    names = sorted({_source_display_name(source) for source in load_sources()})
+    return ", ".join(names) if names else "fontes configuradas"
 
 def _job(company: str, role: str, url: str, ats: str, content: str = "", location: str = "") -> dict:
     text = " ".join(p for p in [role, location, content] if p)
@@ -536,7 +556,7 @@ def generate_markdown(vagas, prev_count) -> str:
     lines = [
         f"# 🆕 Vagas PM Internacionais – {now}",
         "",
-        f"> **Execução automática** | Busca em ATS internacionais (Lever, Ashby, Greenhouse, SmartRecruiters, WWR, Remotive, Wellfound, Workable)",
+        f"> **Execução automática** | Busca em ATS internacionais ({active_source_names()})",
         f"> **Histórico:** {prev_count} vagas anteriores ignoradas | **Novas encontradas:** {len(vagas)}",
         "",
         "---",
