@@ -186,10 +186,6 @@ def _validate_all_links_live(*runs_lists):
 
 _validate_all_links_live(runs, uiux_runs)
 
-for r in runs:
-    r["jobs"] = [j for j in r["jobs"] if j.get("region") == "latam"]
-    r["novas"] = len(r["jobs"])
-
 all_jobs = []
 for run in runs:
     for j in run["jobs"]:
@@ -209,16 +205,17 @@ last_week  = this_week - timedelta(weeks=1)
 
 latam_jobs  = [j for j in all_jobs if j.get("region") == "latam"]
 europe_jobs = [j for j in all_jobs if j.get("region") == "europe"]
+visible_pm_jobs = latam_jobs + europe_jobs
 latest_run  = runs[-1] if runs else None
 today_runs  = [r for r in runs if r.get("date") == today_iso]
 today_pm_jobs = [j for r in today_runs for j in r["jobs"]]
 latest_latam_count  = sum(1 for j in today_pm_jobs if j.get("region") == "latam")
 latest_europe_count = sum(1 for j in today_pm_jobs if j.get("region") == "europe")
 
-total_jobs        = len(all_jobs)
+total_jobs        = len(visible_pm_jobs)
 total_latam       = len(latam_jobs)
 total_europe      = len(europe_jobs)
-latest_count      = len(today_pm_jobs)
+latest_count      = latest_latam_count + latest_europe_count
 total_runs        = len(runs)
 total_uiux        = len(uiux_jobs)
 today_uiux_jobs   = [j for r in uiux_runs if r.get("date") == today_iso for j in r["jobs"]]
@@ -226,7 +223,7 @@ latest_uiux_count = len(today_uiux_jobs)
 from datetime import timezone, timedelta as _td
 _BRT = timezone(_td(hours=-3))
 now_str        = datetime.now(_BRT).strftime("%d %b %Y · %H:%M")
-jobs_json        = json.dumps(all_jobs,   ensure_ascii=False)
+jobs_json        = json.dumps(visible_pm_jobs, ensure_ascii=False)
 latam_jobs_json  = json.dumps(latam_jobs, ensure_ascii=False)
 europe_jobs_json = json.dumps(europe_jobs,ensure_ascii=False)
 uiux_jobs_json   = json.dumps(uiux_jobs,  ensure_ascii=False)
@@ -736,4 +733,4 @@ applyFilter();
 </html>
 """
 (SITE_DIR / "index.html").write_text(html, encoding="utf-8")
-print("OK site gerado: PM=%d LATAM=%d EU=%d UIUX=%d" % (len(all_jobs), len(latam_jobs), len(europe_jobs), len(uiux_jobs)), flush=True)
+print("OK site gerado: PM=%d LATAM=%d EU=%d UIUX=%d" % (len(visible_pm_jobs), len(latam_jobs), len(europe_jobs), len(uiux_jobs)), flush=True)
