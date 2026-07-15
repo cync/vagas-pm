@@ -89,7 +89,8 @@ def parse_md_file(filepath, prefix="vagas_pm"):
 runs = [r for f in _collect_files("vagas_pm_*.md") if (r := parse_md_file(f, "vagas_pm"))]
 if runs: runs[-1]["is_latest"] = True
 
-uiux_runs = []
+uiux_runs = [r for f in _collect_files("vagas_uiux_*.md") if (r := parse_md_file(f, "vagas_uiux"))]
+if uiux_runs: uiux_runs[-1]["is_latest"] = True
 
 _broken_path = SITE_DIR / "broken_links.json"
 
@@ -734,6 +735,5 @@ applyFilter();
 </body>
 </html>
 """
-
 (SITE_DIR / "index.html").write_text(html, encoding="utf-8")
 print("OK site gerado: PM=%d LATAM=%d EU=%d UIUX=%d" % (len(all_jobs), len(latam_jobs), len(europe_jobs), len(uiux_jobs)), flush=True)
