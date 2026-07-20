@@ -205,17 +205,20 @@ last_week  = this_week - timedelta(weeks=1)
 
 latam_jobs  = [j for j in all_jobs if j.get("region") == "latam"]
 europe_jobs = [j for j in all_jobs if j.get("region") == "europe"]
-visible_pm_jobs = latam_jobs + europe_jobs
+global_jobs = [j for j in all_jobs if j.get("region") == "global"]
+visible_pm_jobs = all_jobs
 latest_run  = runs[-1] if runs else None
 today_runs  = [r for r in runs if r.get("date") == today_iso]
 today_pm_jobs = [j for r in today_runs for j in r["jobs"]]
 latest_latam_count  = sum(1 for j in today_pm_jobs if j.get("region") == "latam")
 latest_europe_count = sum(1 for j in today_pm_jobs if j.get("region") == "europe")
+latest_global_count = sum(1 for j in today_pm_jobs if j.get("region") == "global")
 
 total_jobs        = len(visible_pm_jobs)
 total_latam       = len(latam_jobs)
 total_europe      = len(europe_jobs)
-latest_count      = latest_latam_count + latest_europe_count
+total_global      = len(global_jobs)
+latest_count      = latest_latam_count + latest_europe_count + latest_global_count
 total_runs        = len(runs)
 total_uiux        = len(uiux_jobs)
 today_uiux_jobs   = [j for r in uiux_runs if r.get("date") == today_iso for j in r["jobs"]]
@@ -232,6 +235,7 @@ now_str        = datetime.now(_BRT).strftime("%d %b %Y · %H:%M")
 jobs_json        = json.dumps(visible_pm_jobs, ensure_ascii=False)
 latam_jobs_json  = json.dumps(latam_jobs, ensure_ascii=False)
 europe_jobs_json = json.dumps(europe_jobs,ensure_ascii=False)
+global_jobs_json = json.dumps(global_jobs,ensure_ascii=False)
 uiux_jobs_json   = json.dumps(uiux_jobs,  ensure_ascii=False)
 runs_json        = json.dumps(runs,        ensure_ascii=False)
 tw_iso           = this_week.isoformat()
@@ -462,13 +466,21 @@ async function toggleSubscribe() {{
 
 <!-- PM region sub-tabs -->
 <div class="region-bar" id="region-bar">
-  <button class="region-btn active" id="rbtn-latam" onclick="switchRegion('latam')">
+  <button class="region-btn active" id="rbtn-all" onclick="switchRegion('all')">
+    Todas
+    <span class="region-badge" id="rbadge-all">{total_jobs}</span>
+  </button>
+  <button class="region-btn" id="rbtn-latam" onclick="switchRegion('latam')">
     🌎 LATAM
     <span class="region-badge" id="rbadge-latam">{total_latam}</span>
   </button>
   <button class="region-btn" id="rbtn-europe" onclick="switchRegion('europe')">
     🇪🇺 Europe
     <span class="region-badge" id="rbadge-europe">{total_europe}</span>
+  </button>
+  <button class="region-btn" id="rbtn-global" onclick="switchRegion('global')">
+    Global
+    <span class="region-badge" id="rbadge-global">{total_global}</span>
   </button>
 </div>
 
@@ -485,8 +497,8 @@ async function toggleSubscribe() {{
   </div>
   <div class="header-right">
     <div class="stat-pair">
-      <div class="stat-item"><span class="num" id="vis-count">{total_latam}</span><span class="lbl">vagas</span></div>
-      <div class="stat-item"><span class="num" id="today-count">{latest_latam_count}</span><span class="lbl">hoje</span></div>
+      <div class="stat-item"><span class="num" id="vis-count">{total_jobs}</span><span class="lbl">vagas</span></div>
+      <div class="stat-item"><span class="num" id="today-count">{latest_count}</span><span class="lbl">hoje</span></div>
     </div>
     <button class="subscribe-btn" onclick="toggleSubscribe()">
       <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6V11c0-3.07-1.63-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.64 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/></svg>
@@ -505,7 +517,7 @@ async function toggleSubscribe() {{
     <input type="checkbox" id="only-new" onchange="document.getElementById('lbl-new').classList.toggle('on',this.checked);applyFilter()">
     &#x2726; Só novas
   </label>
-  <span class="count-pill" id="count-lbl">{total_latam} vagas</span>
+  <span class="count-pill" id="count-lbl">{total_jobs} vagas</span>
 </div>
 
 <main>
@@ -545,6 +557,7 @@ async function toggleSubscribe() {{
 const ALL_JOBS    = {jobs_json};
 const LATAM_JOBS  = {latam_jobs_json};
 const EUROPE_JOBS = {europe_jobs_json};
+const GLOBAL_JOBS = {global_jobs_json};
 const UIUX_JOBS   = {uiux_jobs_json};
 const RUNS        = {runs_json};
 
@@ -552,13 +565,17 @@ const PM_TOTALS   = {{ total: {total_jobs},  today: {latest_count} }};
 const UIUX_TOTALS = {{ total: {total_uiux}, today: {latest_uiux_count} }};
 const LATAM_TOTALS  = {{ total: {total_latam},  today: {latest_latam_count} }};
 const EUROPE_TOTALS = {{ total: {total_europe}, today: {latest_europe_count} }};
+const GLOBAL_TOTALS = {{ total: {total_global}, today: {latest_global_count} }};
 
 let currentTab    = 'pm';
-let currentRegion = 'latam';  // active PM sub-tab
+let currentRegion = 'all';  // active PM sub-tab
 
 function getActiveJobs() {{
   if (currentTab === 'uiux') return UIUX_JOBS;
-  return currentRegion === 'latam' ? LATAM_JOBS : EUROPE_JOBS;
+  if (currentRegion === 'latam') return LATAM_JOBS;
+  if (currentRegion === 'europe') return EUROPE_JOBS;
+  if (currentRegion === 'global') return GLOBAL_JOBS;
+  return ALL_JOBS;
 }}
 
 const AVATAR_COLORS = [
@@ -606,7 +623,7 @@ function buildPills(jobs) {{
   const atsList=[...new Set(jobs.map(j=>j.ats))].sort();
   document.getElementById('platform-pills').innerHTML=['Todas',...atsList].map(function(a){{return '<button class="pp'+(a==='Todas'?' active':'')+'" data-p="'+a+'" onclick="setPlatform(this.dataset.p)">'+a+'</button>';}}).join('');
 }}
-buildPills(LATAM_JOBS);
+buildPills(ALL_JOBS);
 
 let activePlatform = 'Todas';
 function setPlatform(p) {{
@@ -617,9 +634,11 @@ function setPlatform(p) {{
 
 function switchRegion(region) {{
   currentRegion = region;
+  document.getElementById('rbtn-all').classList.toggle('active', region==='all');
   document.getElementById('rbtn-latam').classList.toggle('active', region==='latam');
   document.getElementById('rbtn-europe').classList.toggle('active', region==='europe');
-  const totals = region==='latam' ? LATAM_TOTALS : EUROPE_TOTALS;
+  document.getElementById('rbtn-global').classList.toggle('active', region==='global');
+  const totals = region==='latam' ? LATAM_TOTALS : region==='europe' ? EUROPE_TOTALS : region==='global' ? GLOBAL_TOTALS : PM_TOTALS;
   document.getElementById('today-count').textContent = totals.today;
   activeWeek = null;
   activePlatform = 'Todas';
@@ -723,7 +742,7 @@ function switchTab(tab) {{
   document.getElementById('tab-uiux').classList.toggle('active', tab==='uiux');
   document.getElementById('page-title').textContent = tab==='pm' ? 'PM Jobs Internacional' : 'UI/UX Jobs Internacional';
   document.getElementById('region-bar').style.display = tab==='pm' ? 'flex' : 'none';
-  const totals = tab==='pm' ? (currentRegion==='latam' ? LATAM_TOTALS : EUROPE_TOTALS) : UIUX_TOTALS;
+  const totals = tab==='pm' ? (currentRegion==='latam' ? LATAM_TOTALS : currentRegion==='europe' ? EUROPE_TOTALS : currentRegion==='global' ? GLOBAL_TOTALS : PM_TOTALS) : UIUX_TOTALS;
   document.getElementById('today-count').textContent = totals.today;
   activeWeek = null;
   activePlatform = 'Todas';
@@ -740,4 +759,4 @@ applyFilter();
 </html>
 """
 (SITE_DIR / "index.html").write_text(html, encoding="utf-8")
-print("OK site gerado: PM=%d LATAM=%d EU=%d UIUX=%d" % (len(visible_pm_jobs), len(latam_jobs), len(europe_jobs), len(uiux_jobs)), flush=True)
+print("OK site gerado: PM=%d LATAM=%d EU=%d GLOBAL=%d UIUX=%d" % (len(visible_pm_jobs), len(latam_jobs), len(europe_jobs), len(global_jobs), len(uiux_jobs)), flush=True)
