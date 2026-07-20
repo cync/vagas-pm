@@ -222,6 +222,12 @@ today_uiux_jobs   = [j for r in uiux_runs if r.get("date") == today_iso for j in
 latest_uiux_count = len(today_uiux_jobs)
 from datetime import timezone, timedelta as _td
 _BRT = timezone(_td(hours=-3))
+if latest_run:
+    latest_search_date = datetime.strptime(latest_run["date"], "%Y-%m-%d").strftime("%d %b %Y")
+    latest_search_count = latest_run.get("novas", 0)
+else:
+    latest_search_date = "sem execucao"
+    latest_search_count = 0
 now_str        = datetime.now(_BRT).strftime("%d %b %Y · %H:%M")
 jobs_json        = json.dumps(visible_pm_jobs, ensure_ascii=False)
 latam_jobs_json  = json.dumps(latam_jobs, ensure_ascii=False)
@@ -529,6 +535,7 @@ async function toggleSubscribe() {{
     </div>
   </div>
   <div class="footer-bottom">
+    <span class="updated-badge">Ultima busca: {latest_search_date} &#183; {latest_search_count} novas</span>
     <span>&#169; {datetime.now().year} Felipe Saraiva · Atualizado em {now_str}</span>
     <span class="updated-badge">&#x2726; {total_jobs} PM · {total_uiux} UI/UX · {total_runs} execucoes</span>
   </div>
