@@ -216,6 +216,31 @@ def _accept_latam_remote_pm_job(job: dict) -> bool:
         return False
     return bool(REMOTE_RE.search(text) and LATAM_REMOTE_RE.search(text))
 
+UIUX_KEYWORDS = re.compile(
+    r'\bproduct\s+design(?:er)?\b|\bux\s*/?\s*ui\s+designer\b|\bui\s*/?\s*ux\s+designer\b|'
+    r'\bux\s+designer\b|\bui\s+designer\b|\buser\s+experience\s+designer\b|'
+    r'\buser\s+interface\s+designer\b|\bhead\s+of\s+design\b|\bdesign\s+lead\b',
+    re.IGNORECASE
+)
+UIUX_EXCLUDE_KEYWORDS = re.compile(
+    r'\bengineer\b|\bdeveloper\b|\bproduct\s+manager\b|\bproduct\s+owner\b|\bmarketing\b|'
+    r'\bsales\b|\bdata\s+scientist\b|\banalyst\b|\baccountant\b|\brecruiter\b|'
+    r'\bgraphic\s+designer\b|\bmotion\s+designer\b|\bbrand\s+designer\b',
+    re.IGNORECASE
+)
+
+def _accept_latam_remote_uiux_job(job: dict) -> bool:
+    if is_manually_blocked_url(job.get("url", "")):
+        return False
+    text = f"{job.get('title','')} {job.get('content','')}"
+    if not UIUX_KEYWORDS.search(job.get("title", "")):
+        return False
+    if UIUX_EXCLUDE_KEYWORDS.search(job.get("title", "")):
+        return False
+    if NON_LATAM_LOCK_RE.search(text) or US_ONLY_RE.search(text):
+        return False
+    return bool(REMOTE_RE.search(text) and LATAM_REMOTE_RE.search(text))
+
 def _fetch_greenhouse(source: dict) -> list[dict]:
     board = source["board"]
     url = f"https://boards-api.greenhouse.io/v1/boards/{board}/jobs?content=true"
@@ -350,18 +375,17 @@ FETCHERS = {
     "wellfound": _fetch_wellfound,
 }
 
-def _fetch_source(source: dict) -> tuple[dict, list[dict], str | None]:
+def _fetch_source(source: dict, accept) -> tuple[dict, list[dict], str | None]:
     fetcher = FETCHERS.get(source.get("ats", "").lower())
     if not fetcher:
         return source, [], f"ATS sem fetcher: {source.get('ats')}"
     try:
-        accept = _accept_latam_remote_pm_job
         jobs = [j for j in fetcher(source) if j.get("url") and accept(j)]
         return source, jobs, None
     except Exception as e:
         return source, [], f"{type(e).__name__}: {e}"
 
-def search_all() -> list[dict] | None:
+def search_all(accept) -> list[dict] | None:
     sources = load_sources()
     if not sources:
         print("  direct_sources.json vazio ou ausente; mantendo site existente.", flush=True)
@@ -370,7 +394,7 @@ def search_all() -> list[dict] | None:
     results: list[dict] = []
     failures = 0
     with ThreadPoolExecutor(max_workers=min(8, len(sources))) as pool:
-        futures = {pool.submit(_fetch_source, s): s for s in sources}
+        futures = {pool.submit(_fetch_source, s, accept): s for s in sources}
         for future in as_completed(futures):
             source, jobs, error = future.result()
             label = source.get("company") or source.get("board") or source.get("category")
@@ -476,7 +500,7 @@ def extract_company_from_title(title: str, url: str) -> str:
         return domain.group(1).replace("-", " ").title()
     return "?"
 
-def extract_with_regex(raw_results: list[dict]) -> list[dict]:
+def extract_with_regex(raw_results: list[dict], keywords=PM_KEYWORDS, exclude=EXCLUDE_KEYWORDS) -> list[dict]:
     """Extração heurística sem LLM."""
     vagas = []
     for r in raw_results:
@@ -485,9 +509,9 @@ def extract_with_regex(raw_results: list[dict]) -> list[dict]:
         content = r.get("content", "")
         full_text = f"{title} {content}"
 
-        if not PM_KEYWORDS.search(full_text):
+        if not keywords.search(full_text):
             continue
-        if EXCLUDE_KEYWORDS.search(title):
+        if exclude.search(title):
             continue
 
         if not is_specific_job_url(url):
@@ -502,7 +526,7 @@ def extract_with_regex(raw_results: list[dict]) -> list[dict]:
             if sep in title:
                 parts = title.split(sep)
                 for part in parts:
-                    if PM_KEYWORDS.search(part):
+                    if keywords.search(part):
                         role = part.strip()
                         break
                 break
@@ -516,8 +540,8 @@ def extract_with_regex(raw_results: list[dict]) -> list[dict]:
         })
     return vagas
 
-def extract_vagas(raw_results: list[dict]) -> list[dict]:
-    result = extract_with_regex(raw_results)
+def extract_vagas(raw_results: list[dict], keywords=PM_KEYWORDS, exclude=EXCLUDE_KEYWORDS) -> list[dict]:
+    result = extract_with_regex(raw_results, keywords, exclude)
     print(f"  ✅ Filtro local manteve {len(result)} vagas", flush=True)
     return result
 
@@ -544,7 +568,7 @@ def group_by_ats(vagas):
         groups.setdefault(ats, []).append(v)
     return groups
 
-def generate_markdown(vagas, prev_count) -> str:
+def generate_markdown(vagas, prev_count, label="PM") -> str:
     months_pt = ["janeiro","fevereiro","março","abril","maio","junho",
                  "julho","agosto","setembro","outubro","novembro","dezembro"]
     d = date.today()
@@ -554,7 +578,7 @@ def generate_markdown(vagas, prev_count) -> str:
     groups = group_by_ats(vagas)
 
     lines = [
-        f"# 🆕 Vagas PM Internacionais – {now}",
+        f"# 🆕 Vagas {label} Internacionais – {now}",
         "",
         f"> **Execução automática** | Busca em ATS internacionais ({active_source_names()})",
         f"> **Histórico:** {prev_count} vagas anteriores ignoradas | **Novas encontradas:** {len(vagas)}",
@@ -646,38 +670,22 @@ def _revalidate_historical_urls():
         print(f"  ✅ Todos os {len(sample)} links históricos válidos", flush=True)
 
 
-def main():
-    VAGAS_DIR.mkdir(parents=True, exist_ok=True)
+ROLE_CONFIGS = [
+    {"key": "pm",   "label": "PM",    "prefix": "vagas_pm",   "keywords": PM_KEYWORDS,   "exclude": EXCLUDE_KEYWORDS,   "accept": _accept_latam_remote_pm_job},
+    {"key": "uiux", "label": "UI/UX", "prefix": "vagas_uiux", "keywords": UIUX_KEYWORDS, "exclude": UIUX_EXCLUDE_KEYWORDS, "accept": _accept_latam_remote_uiux_job},
+]
 
-    history = load_history()
-    prev_count = len(history)
-
-    print(f"📂 Histórico: {prev_count} URLs conhecidas", flush=True)
-
-    print("🔍 Buscando vagas...", flush=True)
-    raw = search_all()
+def _run_role(role: dict, raw: list[dict] | None, history: set, prev_count: int) -> int:
+    """Filtra, valida e grava um arquivo Markdown para uma categoria (PM ou UI/UX).
+    Retorna o número de vagas novas encontradas."""
     if raw is None:
-        print("🌐 Regenerando site sem criar nova execucao...", flush=True)
-        import subprocess
-        result = subprocess.run(
-            [sys.executable, str(SCRIPT_DIR / "generate_site.py")],
-            capture_output=True, text=True
-        )
-        if result.stdout:
-            print(result.stdout, flush=True)
-        if result.returncode != 0:
-            print(f"⚠️  generate_site.py retornou código {result.returncode}", flush=True)
-            if result.stderr:
-                print(result.stderr, flush=True)
-            return result.returncode
-        print("✅ Concluído — busca indisponivel, site existente regenerado", flush=True)
+        print(f"  ⚠️  Busca {role['label']} indisponível, pulando.", flush=True)
         return 0
 
-    _revalidate_historical_urls()
-    print(f"📋 {len(raw)} resultados brutos obtidos", flush=True)
+    print(f"📋 {role['label']}: {len(raw)} resultados brutos obtidos", flush=True)
 
     print("🤖 Extraindo vagas estruturadas...", flush=True)
-    all_vagas = extract_vagas(raw)
+    all_vagas = extract_vagas(raw, role["keywords"], role["exclude"])
 
     normalized_vagas = []
     for v in all_vagas:
@@ -700,28 +708,67 @@ def main():
             deduped.append(v)
     new_vagas = deduped
 
-    print(f"🆕 {len(new_vagas)} vagas novas (após deduplicação)", flush=True)
+    print(f"🆕 {len(new_vagas)} vagas {role['label']} novas (após deduplicação)", flush=True)
 
     if new_vagas:
         print("🔗 Validando links...", flush=True)
         new_vagas = filter_live_vagas(new_vagas)
-        print(f"🆕 {len(new_vagas)} vagas novas com links válidos", flush=True)
+        print(f"🆕 {len(new_vagas)} vagas {role['label']} novas com links válidos", flush=True)
 
-    base = VAGAS_DIR / f"vagas_pm_{TODAY}.md"
+    base = VAGAS_DIR / f"{role['prefix']}_{TODAY}.md"
     if base.exists():
         n = 2
-        while (VAGAS_DIR / f"vagas_pm_{TODAY}_exec{n}.md").exists():
+        while (VAGAS_DIR / f"{role['prefix']}_{TODAY}_exec{n}.md").exists():
             n += 1
-        out_path = VAGAS_DIR / f"vagas_pm_{TODAY}_exec{n}.md"
+        out_path = VAGAS_DIR / f"{role['prefix']}_{TODAY}_exec{n}.md"
     else:
         out_path = base
 
-    md = generate_markdown(new_vagas, prev_count)
+    md = generate_markdown(new_vagas, prev_count, role["label"])
     out_path.write_text(md, encoding="utf-8")
     print(f"💾 Salvo: {out_path.name}", flush=True)
 
     new_urls = {v["url"] for v in new_vagas if v.get("url")}
     history |= new_urls
+
+    return len(new_vagas)
+
+
+def main():
+    VAGAS_DIR.mkdir(parents=True, exist_ok=True)
+
+    history = load_history()
+    prev_count = len(history)
+
+    print(f"📂 Histórico: {prev_count} URLs conhecidas", flush=True)
+
+    probe = search_all(_accept_latam_remote_pm_job)
+    if probe is None:
+        print("🌐 Regenerando site sem criar nova execucao...", flush=True)
+        import subprocess
+        result = subprocess.run(
+            [sys.executable, str(SCRIPT_DIR / "generate_site.py")],
+            capture_output=True, text=True
+        )
+        if result.stdout:
+            print(result.stdout, flush=True)
+        if result.returncode != 0:
+            print(f"⚠️  generate_site.py retornou código {result.returncode}", flush=True)
+            if result.stderr:
+                print(result.stderr, flush=True)
+            return result.returncode
+        print("✅ Concluído — busca indisponivel, site existente regenerado", flush=True)
+        return 0
+
+    _revalidate_historical_urls()
+
+    total_new = 0
+    for i, role in enumerate(ROLE_CONFIGS):
+        print(f"🔍 Buscando vagas {role['label']}...", flush=True)
+        # Reuse the PM probe fetch above instead of searching twice.
+        raw = probe if i == 0 else search_all(role["accept"])
+        total_new += _run_role(role, raw, history, prev_count)
+
     save_history(history)
     print(f"📚 Histórico atualizado: {len(history)} URLs", flush=True)
 
@@ -738,7 +785,7 @@ def main():
         if result.stderr:
             print(result.stderr, flush=True)
 
-    print(f"✅ Concluído — {len(new_vagas)} novas vagas encontradas", flush=True)
+    print(f"✅ Concluído — {total_new} novas vagas encontradas (PM + UI/UX)", flush=True)
 
 
 if __name__ == "__main__":
