@@ -232,6 +232,7 @@ else:
     latest_search_date = "sem execucao"
     latest_search_count = 0
 now_str        = datetime.now(_BRT).strftime("%d %b %Y · %H:%M")
+generated_at_iso = datetime.now(_BRT).isoformat()
 jobs_json        = json.dumps(visible_pm_jobs, ensure_ascii=False)
 latam_jobs_json  = json.dumps(latam_jobs, ensure_ascii=False)
 europe_jobs_json = json.dumps(europe_jobs,ensure_ascii=False)
@@ -560,6 +561,7 @@ const EUROPE_JOBS = {europe_jobs_json};
 const GLOBAL_JOBS = {global_jobs_json};
 const UIUX_JOBS   = {uiux_jobs_json};
 const RUNS        = {runs_json};
+const GENERATED_AT = '{generated_at_iso}';
 
 const PM_TOTALS   = {{ total: {total_jobs},  today: {latest_count} }};
 const UIUX_TOTALS = {{ total: {total_uiux}, today: {latest_uiux_count} }};
@@ -754,6 +756,36 @@ function switchTab(tab) {{
 }}
 
 applyFilter();
+
+// A tab left open never re-fetches data on its own (all jobs are baked into
+// this HTML at generation time), so it can go stale for days even though the
+// backend pipeline runs automatically. Periodically re-fetch this same page
+// bypassing HTTP cache and compare GENERATED_AT to detect a newer build.
+(function() {{
+  function checkForUpdate() {{
+    fetch(location.href, {{ cache: 'no-store' }})
+      .then(function(r) {{ return r.text(); }})
+      .then(function(text) {{
+        const m = text.match(/const GENERATED_AT = '([^']+)'/);
+        if (m && m[1] !== GENERATED_AT) showUpdateBanner();
+      }})
+      .catch(function() {{}});
+  }}
+  function showUpdateBanner() {{
+    if (document.getElementById('update-banner')) return;
+    const b = document.createElement('div');
+    b.id = 'update-banner';
+    b.textContent = 'Novas vagas disponiveis — toque para atualizar';
+    b.style.cssText = 'position:fixed;left:0;right:0;bottom:0;z-index:9999;background:#F37338;'
+      + 'color:#fff;text-align:center;padding:12px;font:600 14px system-ui,sans-serif;cursor:pointer;';
+    b.onclick = function() {{ location.reload(); }};
+    document.body.appendChild(b);
+  }}
+  setInterval(checkForUpdate, 5 * 60 * 1000);
+  document.addEventListener('visibilitychange', function() {{
+    if (document.visibilityState === 'visible') checkForUpdate();
+  }});
+}})();
 </script>
 </body>
 </html>
